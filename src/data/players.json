@@ -1,0 +1,1007 @@
+{
+  "season": "IPL 2026",
+  "playerCount": 100,
+  "players": [
+    {
+      "name": "Rashid Khan",
+      "team": "GT",
+      "role": "BOWLER",
+      "battingRating": 28,
+      "bowlingRating": 97,
+      "overallRating": 96,
+      "id": 1,
+      "fantasyWeight": 0.96
+    },
+    {
+      "name": "Jasprit Bumrah",
+      "team": "MI",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 98,
+      "overallRating": 96,
+      "id": 2,
+      "fantasyWeight": 0.96
+    },
+    {
+      "name": "Suryakumar Yadav",
+      "team": "MI",
+      "role": "BATTER",
+      "battingRating": 97,
+      "bowlingRating": 5,
+      "overallRating": 95,
+      "id": 3,
+      "fantasyWeight": 0.95
+    },
+    {
+      "name": "Shubman Gill",
+      "team": "GT",
+      "role": "BATTER",
+      "battingRating": 96,
+      "bowlingRating": 5,
+      "overallRating": 95,
+      "id": 4,
+      "fantasyWeight": 0.95
+    },
+    {
+      "name": "Virat Kohli",
+      "team": "RCB",
+      "role": "BATTER",
+      "battingRating": 96,
+      "bowlingRating": 5,
+      "overallRating": 95,
+      "id": 5,
+      "fantasyWeight": 0.95
+    },
+    {
+      "name": "Travis Head",
+      "team": "SRH",
+      "role": "BATTER",
+      "battingRating": 96,
+      "bowlingRating": 5,
+      "overallRating": 94,
+      "id": 6,
+      "fantasyWeight": 0.94
+    },
+    {
+      "name": "Yashasvi Jaiswal",
+      "team": "RR",
+      "role": "BATTER",
+      "battingRating": 95,
+      "bowlingRating": 5,
+      "overallRating": 93,
+      "id": 7,
+      "fantasyWeight": 0.93
+    },
+    {
+      "name": "Heinrich Klaasen",
+      "team": "SRH",
+      "role": "WICKET_KEEPER",
+      "battingRating": 94,
+      "bowlingRating": 0,
+      "overallRating": 92,
+      "id": 8,
+      "fantasyWeight": 0.92
+    },
+    {
+      "name": "Jos Buttler",
+      "team": "GT",
+      "role": "WICKET_KEEPER",
+      "battingRating": 94,
+      "bowlingRating": 5,
+      "overallRating": 92,
+      "id": 9,
+      "fantasyWeight": 0.92
+    },
+    {
+      "name": "Nicholas Pooran",
+      "team": "LSG",
+      "role": "WICKET_KEEPER",
+      "battingRating": 94,
+      "bowlingRating": 0,
+      "overallRating": 92,
+      "id": 10,
+      "fantasyWeight": 0.92
+    },
+    {
+      "name": "Ruturaj Gaikwad",
+      "team": "CSK",
+      "role": "BATTER",
+      "battingRating": 94,
+      "bowlingRating": 5,
+      "overallRating": 92,
+      "id": 11,
+      "fantasyWeight": 0.92
+    },
+    {
+      "name": "Sunil Narine",
+      "team": "KKR",
+      "role": "ALL_ROUNDER",
+      "battingRating": 82,
+      "bowlingRating": 94,
+      "overallRating": 92,
+      "id": 12,
+      "fantasyWeight": 0.92
+    },
+    {
+      "name": "Kagiso Rabada",
+      "team": "GT",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 93,
+      "overallRating": 92,
+      "id": 13,
+      "fantasyWeight": 0.92
+    },
+    {
+      "name": "Mitchell Starc",
+      "team": "DC",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 93,
+      "overallRating": 92,
+      "id": 14,
+      "fantasyWeight": 0.92
+    },
+    {
+      "name": "Rohit Sharma",
+      "team": "MI",
+      "role": "BATTER",
+      "battingRating": 93,
+      "bowlingRating": 5,
+      "overallRating": 91,
+      "id": 15,
+      "fantasyWeight": 0.91
+    },
+    {
+      "name": "Ravindra Jadeja",
+      "team": "CSK",
+      "role": "ALL_ROUNDER",
+      "battingRating": 78,
+      "bowlingRating": 91,
+      "overallRating": 91,
+      "id": 16,
+      "fantasyWeight": 0.91
+    },
+    {
+      "name": "Josh Hazlewood",
+      "team": "RCB",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 93,
+      "overallRating": 91,
+      "id": 17,
+      "fantasyWeight": 0.91
+    },
+    {
+      "name": "Pat Cummins",
+      "team": "SRH",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 92,
+      "overallRating": 91,
+      "id": 18,
+      "fantasyWeight": 0.91
+    },
+    {
+      "name": "KL Rahul",
+      "team": "DC",
+      "role": "WICKET_KEEPER",
+      "battingRating": 92,
+      "bowlingRating": 5,
+      "overallRating": 90,
+      "id": 19,
+      "fantasyWeight": 0.9
+    },
+    {
+      "name": "Shreyas Iyer",
+      "team": "PBKS",
+      "role": "BATTER",
+      "battingRating": 92,
+      "bowlingRating": 5,
+      "overallRating": 90,
+      "id": 20,
+      "fantasyWeight": 0.9
+    },
+    {
+      "name": "Rishabh Pant",
+      "team": "LSG",
+      "role": "WICKET_KEEPER",
+      "battingRating": 91,
+      "bowlingRating": 5,
+      "overallRating": 90,
+      "id": 21,
+      "fantasyWeight": 0.9
+    },
+    {
+      "name": "Sai Sudharsan",
+      "team": "GT",
+      "role": "BATTER",
+      "battingRating": 91,
+      "bowlingRating": 5,
+      "overallRating": 90,
+      "id": 22,
+      "fantasyWeight": 0.9
+    },
+    {
+      "name": "Sanju Samson",
+      "team": "CSK",
+      "role": "WICKET_KEEPER",
+      "battingRating": 91,
+      "bowlingRating": 5,
+      "overallRating": 90,
+      "id": 23,
+      "fantasyWeight": 0.9
+    },
+    {
+      "name": "Cameron Green",
+      "team": "KKR",
+      "role": "ALL_ROUNDER",
+      "battingRating": 84,
+      "bowlingRating": 84,
+      "overallRating": 90,
+      "id": 24,
+      "fantasyWeight": 0.9
+    },
+    {
+      "name": "Axar Patel",
+      "team": "DC",
+      "role": "ALL_ROUNDER",
+      "battingRating": 80,
+      "bowlingRating": 88,
+      "overallRating": 90,
+      "id": 25,
+      "fantasyWeight": 0.9
+    },
+    {
+      "name": "Jofra Archer",
+      "team": "RR",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 92,
+      "overallRating": 90,
+      "id": 26,
+      "fantasyWeight": 0.9
+    },
+    {
+      "name": "Kuldeep Yadav",
+      "team": "DC",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 91,
+      "overallRating": 90,
+      "id": 27,
+      "fantasyWeight": 0.9
+    },
+    {
+      "name": "Arshdeep Singh",
+      "team": "PBKS",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 91,
+      "overallRating": 90,
+      "id": 28,
+      "fantasyWeight": 0.9
+    },
+    {
+      "name": "Trent Boult",
+      "team": "MI",
+      "role": "BOWLER",
+      "battingRating": 7,
+      "bowlingRating": 92,
+      "overallRating": 90,
+      "id": 29,
+      "fantasyWeight": 0.9
+    },
+    {
+      "name": "Phil Salt",
+      "team": "RCB",
+      "role": "WICKET_KEEPER",
+      "battingRating": 91,
+      "bowlingRating": 5,
+      "overallRating": 89,
+      "id": 30,
+      "fantasyWeight": 0.89
+    },
+    {
+      "name": "Abhishek Sharma",
+      "team": "SRH",
+      "role": "ALL_ROUNDER",
+      "battingRating": 90,
+      "bowlingRating": 40,
+      "overallRating": 89,
+      "id": 31,
+      "fantasyWeight": 0.89
+    },
+    {
+      "name": "Quinton de Kock",
+      "team": "MI",
+      "role": "WICKET_KEEPER",
+      "battingRating": 90,
+      "bowlingRating": 5,
+      "overallRating": 89,
+      "id": 32,
+      "fantasyWeight": 0.89
+    },
+    {
+      "name": "Mitchell Marsh",
+      "team": "LSG",
+      "role": "ALL_ROUNDER",
+      "battingRating": 85,
+      "bowlingRating": 84,
+      "overallRating": 89,
+      "id": 33,
+      "fantasyWeight": 0.89
+    },
+    {
+      "name": "Mohammad Shami",
+      "team": "LSG",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 90,
+      "overallRating": 89,
+      "id": 34,
+      "fantasyWeight": 0.89
+    },
+    {
+      "name": "Liam Livingstone",
+      "team": "SRH",
+      "role": "ALL_ROUNDER",
+      "battingRating": 86,
+      "bowlingRating": 78,
+      "overallRating": 88,
+      "id": 35,
+      "fantasyWeight": 0.88
+    },
+    {
+      "name": "Marcus Stoinis",
+      "team": "PBKS",
+      "role": "ALL_ROUNDER",
+      "battingRating": 86,
+      "bowlingRating": 82,
+      "overallRating": 88,
+      "id": 36,
+      "fantasyWeight": 0.88
+    },
+    {
+      "name": "Hardik Pandya",
+      "team": "MI",
+      "role": "ALL_ROUNDER",
+      "battingRating": 84,
+      "bowlingRating": 82,
+      "overallRating": 88,
+      "id": 37,
+      "fantasyWeight": 0.88
+    },
+    {
+      "name": "Noor Ahmad",
+      "team": "CSK",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 90,
+      "overallRating": 88,
+      "id": 38,
+      "fantasyWeight": 0.88
+    },
+    {
+      "name": "Varun Chakaravarthy",
+      "team": "KKR",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 90,
+      "overallRating": 88,
+      "id": 39,
+      "fantasyWeight": 0.88
+    },
+    {
+      "name": "Yuzvendra Chahal",
+      "team": "PBKS",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 89,
+      "overallRating": 88,
+      "id": 40,
+      "fantasyWeight": 0.88
+    },
+    {
+      "name": "Mohammed Siraj",
+      "team": "GT",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 89,
+      "overallRating": 88,
+      "id": 41,
+      "fantasyWeight": 0.88
+    },
+    {
+      "name": "Rajat Patidar",
+      "team": "RCB",
+      "role": "BATTER",
+      "battingRating": 88,
+      "bowlingRating": 5,
+      "overallRating": 87,
+      "id": 42,
+      "fantasyWeight": 0.87
+    },
+    {
+      "name": "Rinku Singh",
+      "team": "KKR",
+      "role": "BATTER",
+      "battingRating": 88,
+      "bowlingRating": 5,
+      "overallRating": 87,
+      "id": 43,
+      "fantasyWeight": 0.87
+    },
+    {
+      "name": "Tilak Varma",
+      "team": "MI",
+      "role": "BATTER",
+      "battingRating": 88,
+      "bowlingRating": 5,
+      "overallRating": 87,
+      "id": 44,
+      "fantasyWeight": 0.87
+    },
+    {
+      "name": "Riyan Parag",
+      "team": "RR",
+      "role": "ALL_ROUNDER",
+      "battingRating": 86,
+      "bowlingRating": 74,
+      "overallRating": 87,
+      "id": 45,
+      "fantasyWeight": 0.87
+    },
+    {
+      "name": "Marco Jansen",
+      "team": "PBKS",
+      "role": "ALL_ROUNDER",
+      "battingRating": 78,
+      "bowlingRating": 88,
+      "overallRating": 87,
+      "id": 46,
+      "fantasyWeight": 0.87
+    },
+    {
+      "name": "Gerald Coetzee",
+      "team": "SRH",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 88,
+      "overallRating": 87,
+      "id": 47,
+      "fantasyWeight": 0.87
+    },
+    {
+      "name": "Mayank Yadav",
+      "team": "LSG",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 88,
+      "overallRating": 87,
+      "id": 48,
+      "fantasyWeight": 0.87
+    },
+    {
+      "name": "Ishan Kishan",
+      "team": "SRH",
+      "role": "WICKET_KEEPER",
+      "battingRating": 88,
+      "bowlingRating": 5,
+      "overallRating": 86,
+      "id": 49,
+      "fantasyWeight": 0.86
+    },
+    {
+      "name": "Glenn Phillips",
+      "team": "GT",
+      "role": "ALL_ROUNDER",
+      "battingRating": 87,
+      "bowlingRating": 20,
+      "overallRating": 86,
+      "id": 50,
+      "fantasyWeight": 0.86
+    },
+    {
+      "name": "Shivam Dube",
+      "team": "CSK",
+      "role": "ALL_ROUNDER",
+      "battingRating": 84,
+      "bowlingRating": 76,
+      "overallRating": 86,
+      "id": 51,
+      "fantasyWeight": 0.86
+    },
+    {
+      "name": "Bhuvneshwar Kumar",
+      "team": "RCB",
+      "role": "BOWLER",
+      "battingRating": 12,
+      "bowlingRating": 87,
+      "overallRating": 86,
+      "id": 52,
+      "fantasyWeight": 0.86
+    },
+    {
+      "name": "Lockie Ferguson",
+      "team": "PBKS",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 87,
+      "overallRating": 86,
+      "id": 53,
+      "fantasyWeight": 0.86
+    },
+    {
+      "name": "Aiden Markram",
+      "team": "LSG",
+      "role": "BATTER",
+      "battingRating": 86,
+      "bowlingRating": 10,
+      "overallRating": 85,
+      "id": 54,
+      "fantasyWeight": 0.85
+    },
+    {
+      "name": "Tristan Stubbs",
+      "team": "DC",
+      "role": "WICKET_KEEPER",
+      "battingRating": 86,
+      "bowlingRating": 0,
+      "overallRating": 85,
+      "id": 55,
+      "fantasyWeight": 0.85
+    },
+    {
+      "name": "Nitish Kumar Reddy",
+      "team": "SRH",
+      "role": "ALL_ROUNDER",
+      "battingRating": 83,
+      "bowlingRating": 78,
+      "overallRating": 85,
+      "id": 56,
+      "fantasyWeight": 0.85
+    },
+    {
+      "name": "Rachin Ravindra",
+      "team": "KKR",
+      "role": "ALL_ROUNDER",
+      "battingRating": 80,
+      "bowlingRating": 80,
+      "overallRating": 85,
+      "id": 57,
+      "fantasyWeight": 0.85
+    },
+    {
+      "name": "Washington Sundar",
+      "team": "GT",
+      "role": "ALL_ROUNDER",
+      "battingRating": 80,
+      "bowlingRating": 84,
+      "overallRating": 85,
+      "id": 58,
+      "fantasyWeight": 0.85
+    },
+    {
+      "name": "Krunal Pandya",
+      "team": "RCB",
+      "role": "ALL_ROUNDER",
+      "battingRating": 79,
+      "bowlingRating": 85,
+      "overallRating": 85,
+      "id": 59,
+      "fantasyWeight": 0.85
+    },
+    {
+      "name": "Harshal Patel",
+      "team": "SRH",
+      "role": "ALL_ROUNDER",
+      "battingRating": 12,
+      "bowlingRating": 86,
+      "overallRating": 85,
+      "id": 60,
+      "fantasyWeight": 0.85
+    },
+    {
+      "name": "T. Natarajan",
+      "team": "DC",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 86,
+      "overallRating": 85,
+      "id": 61,
+      "fantasyWeight": 0.85
+    },
+    {
+      "name": "Shimron Hetmyer",
+      "team": "RR",
+      "role": "BATTER",
+      "battingRating": 86,
+      "bowlingRating": 5,
+      "overallRating": 84,
+      "id": 62,
+      "fantasyWeight": 0.84
+    },
+    {
+      "name": "Tim David",
+      "team": "RCB",
+      "role": "ALL_ROUNDER",
+      "battingRating": 86,
+      "bowlingRating": 6,
+      "overallRating": 84,
+      "id": 63,
+      "fantasyWeight": 0.84
+    },
+    {
+      "name": "Will Jacks",
+      "team": "MI",
+      "role": "ALL_ROUNDER",
+      "battingRating": 82,
+      "bowlingRating": 74,
+      "overallRating": 84,
+      "id": 64,
+      "fantasyWeight": 0.84
+    },
+    {
+      "name": "Azmatullah Omarzai",
+      "team": "PBKS",
+      "role": "ALL_ROUNDER",
+      "battingRating": 80,
+      "bowlingRating": 84,
+      "overallRating": 84,
+      "id": 65,
+      "fantasyWeight": 0.84
+    },
+    {
+      "name": "Sai Kishore",
+      "team": "GT",
+      "role": "ALL_ROUNDER",
+      "battingRating": 12,
+      "bowlingRating": 86,
+      "overallRating": 84,
+      "id": 66,
+      "fantasyWeight": 0.84
+    },
+    {
+      "name": "Avesh Khan",
+      "team": "LSG",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 86,
+      "overallRating": 84,
+      "id": 67,
+      "fantasyWeight": 0.84
+    },
+    {
+      "name": "Ajinkya Rahane",
+      "team": "KKR",
+      "role": "BATTER",
+      "battingRating": 84,
+      "bowlingRating": 5,
+      "overallRating": 83,
+      "id": 68,
+      "fantasyWeight": 0.83
+    },
+    {
+      "name": "Dhruv Jurel",
+      "team": "RR",
+      "role": "WICKET_KEEPER",
+      "battingRating": 84,
+      "bowlingRating": 5,
+      "overallRating": 83,
+      "id": 69,
+      "fantasyWeight": 0.83
+    },
+    {
+      "name": "Ryan Rickelton",
+      "team": "MI",
+      "role": "WICKET_KEEPER",
+      "battingRating": 84,
+      "bowlingRating": 5,
+      "overallRating": 83,
+      "id": 70,
+      "fantasyWeight": 0.83
+    },
+    {
+      "name": "Shashank Singh",
+      "team": "PBKS",
+      "role": "BATTER",
+      "battingRating": 84,
+      "bowlingRating": 5,
+      "overallRating": 83,
+      "id": 71,
+      "fantasyWeight": 0.83
+    },
+    {
+      "name": "Rahul Tewatia",
+      "team": "GT",
+      "role": "ALL_ROUNDER",
+      "battingRating": 82,
+      "bowlingRating": 72,
+      "overallRating": 83,
+      "id": 72,
+      "fantasyWeight": 0.83
+    },
+    {
+      "name": "Deepak Chahar",
+      "team": "MI",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 84,
+      "overallRating": 83,
+      "id": 73,
+      "fantasyWeight": 0.83
+    },
+    {
+      "name": "Ayush Badoni",
+      "team": "LSG",
+      "role": "ALL_ROUNDER",
+      "battingRating": 83,
+      "bowlingRating": 20,
+      "overallRating": 82,
+      "id": 74,
+      "fantasyWeight": 0.82
+    },
+    {
+      "name": "Jitesh Sharma",
+      "team": "RCB",
+      "role": "WICKET_KEEPER",
+      "battingRating": 83,
+      "bowlingRating": 5,
+      "overallRating": 82,
+      "id": 75,
+      "fantasyWeight": 0.82
+    },
+    {
+      "name": "Josh Inglis",
+      "team": "LSG",
+      "role": "WICKET_KEEPER",
+      "battingRating": 83,
+      "bowlingRating": 0,
+      "overallRating": 82,
+      "id": 76,
+      "fantasyWeight": 0.82
+    },
+    {
+      "name": "Rahul Chahar",
+      "team": "CSK",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 83,
+      "overallRating": 82,
+      "id": 77,
+      "fantasyWeight": 0.82
+    },
+    {
+      "name": "Sandeep Sharma",
+      "team": "RR",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 83,
+      "overallRating": 82,
+      "id": 78,
+      "fantasyWeight": 0.82
+    },
+    {
+      "name": "Abdul Samad",
+      "team": "LSG",
+      "role": "ALL_ROUNDER",
+      "battingRating": 82,
+      "bowlingRating": 30,
+      "overallRating": 81,
+      "id": 79,
+      "fantasyWeight": 0.81
+    },
+    {
+      "name": "Ashutosh Sharma",
+      "team": "DC",
+      "role": "ALL_ROUNDER",
+      "battingRating": 82,
+      "bowlingRating": 5,
+      "overallRating": 81,
+      "id": 80,
+      "fantasyWeight": 0.81
+    },
+    {
+      "name": "Dewald Brevis",
+      "team": "CSK",
+      "role": "BATTER",
+      "battingRating": 82,
+      "bowlingRating": 5,
+      "overallRating": 81,
+      "id": 81,
+      "fantasyWeight": 0.81
+    },
+    {
+      "name": "Prabhsimran Singh",
+      "team": "PBKS",
+      "role": "WICKET_KEEPER",
+      "battingRating": 82,
+      "bowlingRating": 5,
+      "overallRating": 81,
+      "id": 82,
+      "fantasyWeight": 0.81
+    },
+    {
+      "name": "Rahul Tripathi",
+      "team": "KKR",
+      "role": "BATTER",
+      "battingRating": 82,
+      "bowlingRating": 5,
+      "overallRating": 81,
+      "id": 83,
+      "fantasyWeight": 0.81
+    },
+    {
+      "name": "MS Dhoni",
+      "team": "CSK",
+      "role": "WICKET_KEEPER",
+      "battingRating": 80,
+      "bowlingRating": 0,
+      "overallRating": 81,
+      "id": 84,
+      "fantasyWeight": 0.81
+    },
+    {
+      "name": "Finn Allen",
+      "team": "KKR",
+      "role": "WICKET_KEEPER",
+      "battingRating": 82,
+      "bowlingRating": 0,
+      "overallRating": 80,
+      "id": 85,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Abishek Porel",
+      "team": "DC",
+      "role": "WICKET_KEEPER",
+      "battingRating": 81,
+      "bowlingRating": 5,
+      "overallRating": 80,
+      "id": 86,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Donovan Ferreira",
+      "team": "RR",
+      "role": "WICKET_KEEPER",
+      "battingRating": 81,
+      "bowlingRating": 5,
+      "overallRating": 80,
+      "id": 87,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Harpreet Brar",
+      "team": "PBKS",
+      "role": "ALL_ROUNDER",
+      "battingRating": 72,
+      "bowlingRating": 81,
+      "overallRating": 80,
+      "id": 88,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Yash Dayal",
+      "team": "RCB",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 82,
+      "overallRating": 80,
+      "id": 89,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Jaydev Unadkat",
+      "team": "SRH",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 81,
+      "overallRating": 80,
+      "id": 90,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Nandre Burger",
+      "team": "RR",
+      "role": "BOWLER",
+      "battingRating": 7,
+      "bowlingRating": 81,
+      "overallRating": 80,
+      "id": 91,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Tushar Deshpande",
+      "team": "RR",
+      "role": "BOWLER",
+      "battingRating": 7,
+      "bowlingRating": 82,
+      "overallRating": 80,
+      "id": 92,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Tim Seifert",
+      "team": "KKR",
+      "role": "WICKET_KEEPER",
+      "battingRating": 80,
+      "bowlingRating": 0,
+      "overallRating": 79,
+      "id": 93,
+      "fantasyWeight": 0.79
+    },
+    {
+      "name": "Angkrish Raghuvanshi",
+      "team": "KKR",
+      "role": "BATTER",
+      "battingRating": 79,
+      "bowlingRating": 5,
+      "overallRating": 78,
+      "id": 94,
+      "fantasyWeight": 0.78
+    },
+    {
+      "name": "Sameer Rizvi",
+      "team": "DC",
+      "role": "BATTER",
+      "battingRating": 78,
+      "bowlingRating": 5,
+      "overallRating": 77,
+      "id": 95,
+      "fantasyWeight": 0.77
+    },
+    {
+      "name": "Mukesh Choudhary",
+      "team": "CSK",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 78,
+      "overallRating": 77,
+      "id": 96,
+      "fantasyWeight": 0.77
+    },
+    {
+      "name": "Suyash Sharma",
+      "team": "RCB",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 78,
+      "overallRating": 77,
+      "id": 97,
+      "fantasyWeight": 0.77
+    },
+    {
+      "name": "Vaibhav Sooryavanshi",
+      "team": "RR",
+      "role": "BATTER",
+      "battingRating": 78,
+      "bowlingRating": 5,
+      "overallRating": 76,
+      "id": 98,
+      "fantasyWeight": 0.76
+    },
+    {
+      "name": "Vipraj Nigam",
+      "team": "DC",
+      "role": "ALL_ROUNDER",
+      "battingRating": 76,
+      "bowlingRating": 70,
+      "overallRating": 76,
+      "id": 99,
+      "fantasyWeight": 0.76
+    },
+    {
+      "name": "Anshul Kamboj",
+      "team": "CSK",
+      "role": "BOWLER",
+      "battingRating": 7,
+      "bowlingRating": 76,
+      "overallRating": 76,
+      "id": 100,
+      "fantasyWeight": 0.76
+    }
+  ],
+  "note": "Ratings are gameplay-balanced model values based on current IPLT20 2026 squad listings and public player reputation/form; they are not official IPL ratings."
+}

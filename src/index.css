@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-pitch-950 text-slate-100 font-sans antialiased;
+    margin: 0;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    background-image:
+      radial-gradient(1200px 600px at 50% -10%, rgba(245, 197, 66, 0.08), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(46, 134, 222, 0.07), transparent 55%),
+      radial-gradient(900px 500px at 0% 100%, rgba(123, 63, 160, 0.06), transparent 55%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: rgba(245, 197, 66, 0.3);
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-2xl border border-white/10 bg-pitch-850/80 backdrop-blur-md shadow-card;
+  }
+
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .stat-label {
+    @apply text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-display text-base font-600 uppercase tracking-wide transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 select-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-gradient-to-b from-gold-soft to-gold-deep text-pitch-950 shadow-[0_10px_30px_-8px_rgba(245,197,66,0.6)] hover:brightness-110 active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply btn border border-white/15 bg-white/5 text-slate-100 hover:bg-white/10 active:scale-[0.98];
+  }
+
+  .heading-display {
+    font-family: 'Oswald', 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.01em;
+  }
+}
+
+@layer utilities {
+  .text-stroke {
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.12);
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 9999px;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
