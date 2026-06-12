@@ -24,10 +24,9 @@ interface SquadBoardProps {
   squad: SquadSlot[];
   pendingPlayer: Player | null;
   onAssign: (position: number) => void;
-  onRemove: (position: number) => void;
 }
 
-export function SquadBoard({ squad, pendingPlayer, onAssign, onRemove }: SquadBoardProps) {
+export function SquadBoard({ squad, pendingPlayer, onAssign }: SquadBoardProps) {
   const byPosition = new Map(squad.map((s) => [s.position, s]));
   const assigning = Boolean(pendingPlayer);
 
@@ -42,7 +41,7 @@ export function SquadBoard({ squad, pendingPlayer, onAssign, onRemove }: SquadBo
           <div key={pos} className="relative">
             <AnimatePresence mode="popLayout">
               {slot ? (
-                <FilledSlot key="filled" slot={slot} onRemove={() => onRemove(pos)} />
+                <FilledSlot key="filled" slot={slot} />
               ) : (
                 <motion.button
                   key="empty"
@@ -76,7 +75,7 @@ export function SquadBoard({ squad, pendingPlayer, onAssign, onRemove }: SquadBo
   );
 }
 
-function FilledSlot({ slot, onRemove }: { slot: SquadSlot; onRemove: () => void }) {
+function FilledSlot({ slot }: { slot: SquadSlot }) {
   const { player } = slot;
   const meta = TEAM_META[player.team];
   return (
@@ -86,7 +85,7 @@ function FilledSlot({ slot, onRemove }: { slot: SquadSlot; onRemove: () => void 
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.85 }}
       transition={{ type: 'spring', stiffness: 320, damping: 22 }}
-      className="group flex h-[58px] w-full items-center gap-3 overflow-hidden rounded-xl border border-white/10 bg-pitch-800 px-2.5"
+      className="flex h-[58px] w-full items-center gap-3 overflow-hidden rounded-xl border border-white/10 bg-pitch-800 px-2.5"
       style={{ boxShadow: `inset 3px 0 0 ${meta.accent}` }}
     >
       <span
@@ -104,22 +103,12 @@ function FilledSlot({ slot, onRemove }: { slot: SquadSlot; onRemove: () => void 
           <span>{ROLE_SHORT[player.role]}</span>
         </div>
       </div>
-      <div className="flex flex-col items-center pr-0.5">
+      <div className="flex flex-col items-center pr-1">
         <span className="font-display text-base font-700" style={{ color: meta.accent }}>
           {player.overallRating}
         </span>
         <span className="stat-label">OVR</span>
       </div>
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label={`Remove ${player.name}`}
-        className="ml-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md text-slate-500 transition-colors hover:bg-red-500/20 hover:text-red-300"
-      >
-        <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.2}>
-          <path d="M5 5l10 10M15 5L5 15" strokeLinecap="round" />
-        </svg>
-      </button>
     </motion.div>
   );
 }

@@ -33,7 +33,6 @@ export function DraftPage() {
     pickPlayer,
     cancelPick,
     assignToPosition,
-    removeFromSquad,
   } = useGameStore();
 
   const pool = useSelectablePlayers();
@@ -205,12 +204,7 @@ export function DraftPage() {
           />
           <div className="panel p-4">
             <SectionLabel className="mb-3">Your XI</SectionLabel>
-            <SquadBoard
-              squad={squad}
-              pendingPlayer={pendingPlayer}
-              onAssign={assignToPosition}
-              onRemove={removeFromSquad}
-            />
+            <SquadBoard squad={squad} pendingPlayer={pendingPlayer} onAssign={assignToPosition} />
           </div>
         </section>
       </div>

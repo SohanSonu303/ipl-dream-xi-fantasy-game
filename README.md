@@ -84,18 +84,37 @@ keeper/bowlers ≈ 6%.
 A few spec lines were interpreted to produce believable, fun results — noted
 here for transparency:
 
-1. **Team Power & match/net formulas** are written in the brief with `*`
+1. **Team Power & strength formulas** are written in the brief with `*`
    between weighted terms. Pure multiplication can't yield the stated 0–100
-   range (and an additive ±12 swing that can go negative would erase the power
-   advantage). They're implemented as **weighted sums / additive variance**,
-   which is the only reading that matches the described behaviour
-   (`matchScore = teamPower + random(-12, +12)`).
+   range, so they're implemented as **weighted sums**.
 2. **League shape** — the user's Dream XI joins all **10 franchises → an
    11-team league**, and every team plays exactly **18 matches** via a balanced
    multi-round schedule (validated: each team = 18, 99 total fixtures). Franchise
    strength is computed from each club's real dataset squad.
 3. **Net rating** is the aggregate score differential per match (a believable
    NRR proxy) used to break ties on equal points.
+
+## Match engine (`src/engine/matchEngine.ts`)
+
+Each side's result is decided by its **performance on the day**, so the best
+squad is favoured but never guaranteed:
+
+```
+performance = teamPower            // overall class (ratings + composition)
+            + matchup              // non-linear: reward for out-batting their
+                                   //   attack / out-bowling their batters
+            + form                 // bell-curve swing (the main luck source)
+            + spark                // 16% chance of a momentum-shifting blinder
+```
+
+`form` is the sum of four uniforms (≈ a normal curve): most games land near your
+level, some you fire, some you flop. `spark` is the occasional star-turn that
+topples a stronger side. Higher performance wins — no ties.
+
+Monte-Carlo behaviour: head-to-head a +6-power side wins ~70% (so ~30% upsets);
+across a full season a clearly strong XI takes the title ~27% of the time and
+misses the playoffs ~22% — skill is rewarded, luck is real. Net rating
+(aggregate performance differential) breaks ties on equal points.
 
 ## Outcomes
 

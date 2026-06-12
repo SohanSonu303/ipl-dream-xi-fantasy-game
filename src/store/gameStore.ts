@@ -43,7 +43,6 @@ interface GameState {
   pickPlayer: (player: Player) => void;
   cancelPick: () => void;
   assignToPosition: (position: number) => void;
-  removeFromSquad: (position: number) => void;
   runSimulation: () => void;
   resetGame: () => void;
 }
@@ -129,9 +128,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       offer: [], // clear the spent pack
     });
   },
-
-  removeFromSquad: (position) =>
-    set({ squad: get().squad.filter((s) => s.position !== position) }),
 
   runSimulation: () => {
     const { squad, teamName } = get();
