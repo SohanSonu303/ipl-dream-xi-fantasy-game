@@ -84,6 +84,10 @@ export interface SeasonTeam {
   code: TeamCode | 'XI';
   isUser: boolean;
   strength: TeamStrength;
+  /** Squad roster — used to award a Player of the Match. */
+  players?: Player[];
+  /** Drafted player id chosen as captain (user team only). */
+  captainId?: number;
 }
 
 export interface MatchResult {
@@ -95,6 +99,10 @@ export interface MatchResult {
   winnerId: string;
   loserId: string;
   margin: number;
+  /** Standout performer of the match (drawn from the winning side). */
+  playerOfMatchId?: number;
+  playerOfMatchName?: string;
+  playerOfMatchTeamId?: string;
 }
 
 export interface Standing {
@@ -139,3 +147,9 @@ export interface SeasonResult {
 }
 
 export type GamePhase = 'home' | 'draft' | 'simulation' | 'results';
+
+/**
+ * Free play (fresh randomness), the reproducible Daily Challenge, or a
+ * head-to-head friend battle against a shared XI.
+ */
+export type GameMode = 'free' | 'daily' | 'versus';

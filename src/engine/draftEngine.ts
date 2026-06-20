@@ -63,7 +63,12 @@ export function buildOffer(
   return shuffle(available).slice(0, size);
 }
 
-export const SQUAD_SIZE = 11;
+/** Players in the starting XI (batting-order slots 0..10). */
+export const XI_SIZE = 11;
+/** Bench players drafted for the mid-season Impact Player swap (slots 11..12). */
+export const BENCH_SIZE = 2;
+/** Total players drafted: the XI plus the bench. */
+export const SQUAD_SIZE = XI_SIZE + BENCH_SIZE;
 export const MAX_REROLLS = 1;
-/** How many players are revealed per roll. */
+/** How many players are revealed per roll (the draft pack size). */
 export const OFFER_SIZE = 3;

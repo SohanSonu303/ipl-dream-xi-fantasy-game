@@ -4,11 +4,14 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
 import { SEASON_LABEL, USER_TEAM_ID } from '@/engine';
 import { OUTCOME_META } from '@/data/outcomes';
+import { currentStreak, dailyNumber } from '@/data/daily';
+import { getTrait } from '@/data/playerMeta';
 import { ordinal } from '@/utils';
 import { PlayerCard } from '@/components/Shared/PlayerCard';
 import { LeagueTable } from '@/components/Simulation/LeagueTable';
 import { PlayoffBracket } from '@/components/Simulation/PlayoffBracket';
 import { ShareButton } from '@/components/Results/ShareButton';
+import { ChallengeButton } from '@/components/Results/ChallengeButton';
 import { TeamBadge } from '@/components/Shared/TeamBadge';
 import { PageTransition, Brand, SectionLabel } from '@/components/Shared/ui';
 
@@ -17,6 +20,8 @@ export function ResultsPage() {
   const seasonResult = useGameStore((s) => s.seasonResult);
   const squad = useGameStore((s) => s.squad);
   const teamName = useGameStore((s) => s.teamName);
+  const captainId = useGameStore((s) => s.captainId);
+  const mode = useGameStore((s) => s.mode);
 
   useEffect(() => {
     if (!seasonResult) navigate('/', { replace: true });
@@ -27,6 +32,33 @@ export function ResultsPage() {
     [seasonResult],
   );
 
+  // Player of the Season: the user's player with the most Player-of-the-Match
+  // awards across the whole campaign (league + playoffs).
+  const playerOfSeason = useMemo(() => {
+    if (!seasonResult) return null;
+    const all = [
+      ...seasonResult.leagueMatches,
+      ...seasonResult.playoffs.map((p) => p.result).filter(Boolean),
+    ];
+    const counts = new Map<number, number>();
+    for (const m of all) {
+      if (m && m.playerOfMatchTeamId === USER_TEAM_ID && m.playerOfMatchId != null) {
+        counts.set(m.playerOfMatchId, (counts.get(m.playerOfMatchId) ?? 0) + 1);
+      }
+    }
+    let bestId = -1;
+    let bestCount = 0;
+    for (const [id, c] of counts) {
+      if (c > bestCount) {
+        bestCount = c;
+        bestId = id;
+      }
+    }
+    if (bestId < 0) return null;
+    const player = squad.find((s) => s.player.id === bestId)?.player;
+    return player ? { player, awards: bestCount } : null;
+  }, [seasonResult, squad]);
+
   if (!seasonResult) return null;
 
   const { userStanding, userOutcome } = seasonResult;
@@ -34,12 +66,16 @@ export function ResultsPage() {
   const strength = userStanding.team.strength;
   const champion = teamById.get(seasonResult.championId)!;
   const sortedSquad = [...squad].sort((a, b) => a.position - b.position);
+  const isDaily = mode === 'daily';
+  const captainName = squad.find((s) => s.player.id === captainId)?.player.name ?? null;
 
   const shareText =
     `🏏 ${teamName} — ${outcome.label}\n` +
-    `${SEASON_LABEL} Dream XI Draft\n` +
+    `${isDaily ? `Daily Challenge #${dailyNumber()}` : `${SEASON_LABEL} Dream XI Draft`}\n` +
     `Finished ${ordinal(userStanding.position)} · ${userStanding.won}W-${userStanding.lost}L · ${userStanding.points} pts\n` +
     `Team Power ${strength.teamPower} (BAT ${strength.batting} / BOWL ${strength.bowling})\n` +
+    (captainName ? `(C) ${captainName}\n` : '') +
+    (playerOfSeason ? `⭐ Player of the Season: ${playerOfSeason.player.name} (${playerOfSeason.awards} MOTM)\n` : '') +
     `🏆 Champions: ${champion.name}`;
 
   const shareImage = {
@@ -86,7 +122,14 @@ export function ResultsPage() {
     <PageTransition className="pb-16">
       <header className="flex items-center justify-between py-4">
         <Brand />
-        <span className="pill border border-white/10 bg-white/5 text-slate-300">{SEASON_LABEL}</span>
+        {isDaily ? (
+          <span className="pill border border-gold/30 bg-gold/10 text-gold-soft">
+            🗓️ Daily #{dailyNumber()}
+            {currentStreak() > 0 && <span className="ml-1 text-orange-300">· 🔥 {currentStreak()}</span>}
+          </span>
+        ) : (
+          <span className="pill border border-white/10 bg-white/5 text-slate-300">{SEASON_LABEL}</span>
+        )}
       </header>
 
       {/* Outcome hero */}
@@ -123,14 +166,18 @@ export function ResultsPage() {
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <ShareButton image={shareImage} caption={shareText} fileBaseName={fileBaseName} />
-          <button onClick={reSimulate} className="btn-ghost px-6">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Re-Simulate
-          </button>
+          <ChallengeButton squad={squad} captainId={captainId} teamName={teamName} />
+          {/* Daily is a single, deterministic run — re-simulating would change nothing. */}
+          {!isDaily && (
+            <button onClick={reSimulate} className="btn-ghost px-6">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Re-Simulate
+            </button>
+          )}
           <button onClick={playAgain} className="btn-primary px-6">
-            Play Again
+            {isDaily ? 'Back to Home' : 'Play Again'}
           </button>
         </div>
       </motion.section>
@@ -153,12 +200,42 @@ export function ResultsPage() {
         ))}
       </section>
 
+      {/* Player of the Season */}
+      {playerOfSeason && (
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-gold/25 bg-gradient-to-r from-gold/[0.08] to-transparent p-4"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">⭐</span>
+            <div>
+              <div className="stat-label">Player of the Season</div>
+              <div className="font-display text-lg font-700 uppercase text-gold-soft">
+                {playerOfSeason.player.name}
+                {playerOfSeason.player.id === captainId && <span className="ml-1.5 text-sm text-gold">(C)</span>}
+              </div>
+            </div>
+          </div>
+          <span className="pill shrink-0 border border-gold/30 bg-gold/10 text-gold-soft">
+            {playerOfSeason.awards} × MOTM
+          </span>
+        </motion.section>
+      )}
+
       {/* Your XI */}
       <section className="mt-6">
         <SectionLabel className="mb-3">Your Dream XI</SectionLabel>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {sortedSquad.map((slot, i) => (
-            <PlayerCard key={slot.player.id} player={slot.player} index={i} compact />
+            <PlayerCard
+              key={slot.player.id}
+              player={slot.player}
+              index={i}
+              compact
+              captain={slot.player.id === captainId}
+              trait={getTrait(slot.player.id)?.label}
+            />
           ))}
         </div>
       </section>

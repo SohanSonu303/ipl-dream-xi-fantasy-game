@@ -18,7 +18,7 @@ npm run preview  # preview the production build
 `Home → Start Draft → Roll Team → Pick Player → Place in XI → (repeat ×11)
 → Simulate Season → League Table → Playoffs → Champion → Results → Share / Play Again`
 
-- **Draft** — the first team auto-rolls. Each roll reveals a **random pack of 3
+- **Draft** — the first team auto-rolls. Each roll reveals a **random pack of 4
   players** (the rest of the franchise is hidden), so you can't always grab the
   top star — that randomness keeps your XI from becoming overpowered. Tap a card
   to draft, then choose a squad slot. Roll the next team for each pick.

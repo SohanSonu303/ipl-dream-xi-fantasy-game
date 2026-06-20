@@ -1,4 +1,5 @@
 import type { Composition, PlayerRole, TeamStrength } from '@/types';
+import type { Chemistry, PositionAnalysis } from '@/engine';
 import { RatingRing } from '@/components/Shared/RatingRing';
 import { StatBar } from '@/components/Shared/StatBar';
 import { ROLE_LABELS } from '@/data/teams';
@@ -9,13 +10,16 @@ interface StrengthPanelProps {
   strength: TeamStrength | null;
   roleBalance: Record<PlayerRole, number>;
   composition: Composition;
+  chemistry: Chemistry;
+  positions: PositionAnalysis;
   count: number;
 }
 
 const ROLE_ORDER: PlayerRole[] = ['BATTER', 'ALL_ROUNDER', 'WICKET_KEEPER', 'BOWLER'];
 
-export function StrengthPanel({ strength, roleBalance, composition, count }: StrengthPanelProps) {
+export function StrengthPanel({ strength, roleBalance, composition, chemistry, positions, count }: StrengthPanelProps) {
   const penalty = strength?.compositionModifier ?? 0;
+  const misfits = positions.fits.filter((f) => !f.ok).length;
 
   return (
     <div className="panel p-4">
@@ -73,6 +77,61 @@ export function StrengthPanel({ strength, roleBalance, composition, count }: Str
             <span className="text-slate-300">{strength?.basePower ?? 0}</span>.
           </p>
         )}
+      </div>
+
+      {/* Chemistry */}
+      <div className="mt-4 border-t border-white/10 pt-3">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="stat-label">Chemistry</span>
+          {chemistry.powerBonus > 0 ? (
+            <span className="pill bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300">
+              +{chemistry.powerBonus} power
+            </span>
+          ) : (
+            <span className="pill bg-white/5 px-2 py-0.5 text-[10px] text-slate-400">no links yet</span>
+          )}
+        </div>
+        {chemistry.links.length > 0 ? (
+          <div className="space-y-1.5">
+            {chemistry.links.slice(0, 3).map((link) => (
+              <div key={`${link.kind}-${link.group}`} className="flex items-center gap-2 text-xs">
+                <span className="shrink-0">{link.kind === 'club' ? '🔗' : '🌐'}</span>
+                <span className="flex-1 truncate text-slate-300" title={link.players.join(', ')}>
+                  <span className="font-600 text-slate-200">{link.group}</span>
+                  <span className="text-slate-500"> · {link.players.length} linked</span>
+                </span>
+                <span className="tabular-nums text-emerald-300">+{link.points}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[11px] leading-relaxed text-slate-500">
+            Draft players from the same club or country to build chemistry and boost power.
+          </p>
+        )}
+      </div>
+
+      {/* Batting-order fit */}
+      <div className="mt-4 border-t border-white/10 pt-3">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="stat-label">Batting Order</span>
+          {positions.modifier > 0 ? (
+            <span className="pill bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300">
+              +{positions.modifier} power
+            </span>
+          ) : positions.modifier < 0 ? (
+            <span className="pill bg-red-500/15 px-2 py-0.5 text-[10px] text-red-300">
+              {positions.modifier} power
+            </span>
+          ) : (
+            <span className="pill bg-white/5 px-2 py-0.5 text-[10px] text-slate-400">neutral</span>
+          )}
+        </div>
+        <p className="text-[11px] leading-relaxed text-slate-500">
+          {misfits > 0
+            ? `${misfits} player${misfits === 1 ? '' : 's'} out of position — bowlers up top or batters at the death cost power. Order matters.`
+            : 'Well-ordered XI. Put finishers at the death and your spinner/pacers at 9–11 for trait bonuses.'}
+        </p>
       </div>
 
       {/* Role tally */}

@@ -1,12 +1,21 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import type { GameMode } from '@/types';
 import { useGameStore } from '@/store/gameStore';
 import { usePlayers } from '@/data/usePlayers';
 import { TEAM_CODES } from '@/data/teams';
+import { OUTCOME_META } from '@/data/outcomes';
+import {
+  currentStreak,
+  dailyNumber,
+  getDailyRecord,
+  type DailyRecord,
+} from '@/data/daily';
 import { TeamBadge } from '@/components/Shared/TeamBadge';
 import { PageTransition, Brand } from '@/components/Shared/ui';
 import { MAX_REROLLS, SEASON_LABEL } from '@/engine';
+import { ordinal } from '@/utils';
 
 const FEATURES = [
   { title: 'Roll & Draft', desc: 'Spin a random franchise, pick a star, fill your XI.' },
@@ -26,8 +35,19 @@ export function HomePage() {
     resetGame();
   }, [resetGame]);
 
-  const begin = () => {
-    startDraft();
+  // Daily Challenge status (recomputed after resetGame so it reflects storage).
+  const daily = useMemo(
+    () => ({
+      number: dailyNumber(),
+      record: getDailyRecord(),
+      streak: currentStreak(),
+    }),
+    [],
+  );
+
+  const begin = (mode: GameMode = 'free') => {
+    if (mode === 'daily' && daily.record) return; // one play per day
+    startDraft(mode);
     navigate('/draft');
   };
 
@@ -76,7 +96,7 @@ export function HomePage() {
           transition={{ delay: 0.35 }}
           className="mt-8 flex flex-col items-center gap-3"
         >
-          <button onClick={begin} className="btn-primary group px-10 py-4 text-lg">
+          <button onClick={() => begin('free')} className="btn-primary group px-10 py-4 text-lg">
             Start Draft
             <svg viewBox="0 0 24 24" className="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth={2.5}>
               <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
@@ -86,6 +106,13 @@ export function HomePage() {
             {data?.players.length ?? 100} players · {TEAM_CODES.length} franchises ·{' '}
             {MAX_REROLLS} reroll{MAX_REROLLS === 1 ? '' : 's'}
           </span>
+
+          <DailyCard
+            number={daily.number}
+            streak={daily.streak}
+            record={daily.record}
+            onPlay={() => begin('daily')}
+          />
         </motion.div>
 
         {/* Team marquee */}
@@ -125,5 +152,72 @@ export function HomePage() {
         ))}
       </div>
     </PageTransition>
+  );
+}
+
+function DailyCard({
+  number,
+  streak,
+  record,
+  onPlay,
+}: {
+  number: number;
+  streak: number;
+  record: DailyRecord | null;
+  onPlay: () => void;
+}) {
+  const played = record != null;
+  const outcome = record ? OUTCOME_META[record.outcome] : null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.45 }}
+      className="mt-4 w-full max-w-sm rounded-2xl border border-gold/20 bg-gradient-to-b from-gold/[0.06] to-transparent p-4"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-base">🗓️</span>
+          <span className="font-display text-sm font-700 uppercase tracking-wide text-gold-soft">
+            Daily Challenge
+          </span>
+        </div>
+        <span className="pill border border-white/10 bg-white/5 text-[10px] text-slate-300">
+          #{number}
+        </span>
+      </div>
+
+      <p className="mt-1.5 text-left text-xs leading-relaxed text-slate-400">
+        Same rolls for everyone today — your picks alone decide the result. One shot, no re-sims.
+      </p>
+
+      {played && outcome ? (
+        <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-left">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span>{outcome.emoji}</span>
+              <span className="truncate font-display text-sm font-700 uppercase" style={{ color: outcome.accent }}>
+                {outcome.label}
+              </span>
+            </div>
+            <div className="stat-label mt-0.5">
+              {ordinal(record!.position)} · {record!.won}W-{record!.lost}L · come back tomorrow
+            </div>
+          </div>
+          <span className="shrink-0 text-emerald-300" title="Played today">✓</span>
+        </div>
+      ) : (
+        <button onClick={onPlay} className="btn-ghost mt-3 w-full justify-center border-gold/40 text-gold-soft">
+          Play Today’s Challenge
+        </button>
+      )}
+
+      {streak > 0 && (
+        <div className="mt-2 flex items-center justify-center gap-1.5 text-xs text-orange-300">
+          🔥 <span className="font-700 tabular-nums">{streak}</span> day streak
+        </div>
+      )}
+    </motion.div>
   );
 }

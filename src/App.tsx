@@ -6,6 +6,8 @@ import { HomePage } from '@/pages/Home/HomePage';
 import { DraftPage } from '@/pages/Draft/DraftPage';
 import { SimulationPage } from '@/pages/Simulation/SimulationPage';
 import { ResultsPage } from '@/pages/Results/ResultsPage';
+import { VersusPage } from '@/pages/Versus/VersusPage';
+import { VersusResultPage } from '@/pages/Versus/VersusResultPage';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false } },
@@ -20,6 +22,8 @@ function AnimatedRoutes() {
         <Route path="/draft" element={<DraftPage />} />
         <Route path="/simulate" element={<SimulationPage />} />
         <Route path="/results" element={<ResultsPage />} />
+        <Route path="/vs/:code" element={<VersusPage />} />
+        <Route path="/versus-result" element={<VersusResultPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AnimatePresence>

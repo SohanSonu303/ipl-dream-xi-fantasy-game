@@ -11,6 +11,10 @@ interface PlayerCardProps {
   index?: number;
   /** Compact card omits the stat bars (used in tight squad slots). */
   compact?: boolean;
+  /** Marks this player as the team captain with a (C) badge. */
+  captain?: boolean;
+  /** Signature trait label, shown as a chip. */
+  trait?: string;
 }
 
 export function PlayerCard({
@@ -20,6 +24,8 @@ export function PlayerCard({
   disabled = false,
   index = 0,
   compact = false,
+  captain = false,
+  trait,
 }: PlayerCardProps) {
   const meta = TEAM_META[player.team];
   const interactive = Boolean(onSelect) && !disabled;
@@ -48,6 +54,15 @@ export function PlayerCard({
         className="relative h-1 w-full sm:h-1.5"
         style={{ background: `linear-gradient(90deg, ${meta.accent}, ${meta.accent2})` }}
       />
+
+      {captain && (
+        <span
+          className="absolute left-2 top-2.5 z-10 grid h-5 w-5 place-items-center rounded-full bg-gold font-display text-[10px] font-700 text-pitch-950 shadow-glow"
+          title="Captain"
+        >
+          C
+        </span>
+      )}
 
       {/* Top row: team + role + overall */}
       <div className="flex items-start justify-between px-2 pt-2 sm:px-3 sm:pt-3">
@@ -93,6 +108,11 @@ export function PlayerCard({
         <h3 className="heading-display truncate text-[12px] font-600 leading-tight sm:text-[15px]" title={player.name}>
           {player.name}
         </h3>
+        {trait && compact && (
+          <span className="mt-0.5 block truncate text-[9px] font-600 uppercase tracking-wide text-gold-soft" title={trait}>
+            ★ {trait}
+          </span>
+        )}
       </div>
 
       {/* Stats */}
@@ -106,6 +126,14 @@ export function PlayerCard({
               ★ {player.fantasyWeight.toFixed(2)}
             </span>
           </div>
+          {trait && (
+            <div className="flex items-center gap-1 rounded-lg border border-gold/25 bg-gold/10 px-2 py-1">
+              <span className="text-[10px]">★</span>
+              <span className="truncate text-[10px] font-600 uppercase tracking-wide text-gold-soft" title={trait}>
+                {trait}
+              </span>
+            </div>
+          )}
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import type { Player, SquadSlot } from '@/types';
-import { SQUAD_SIZE } from '@/engine';
+import { SQUAD_SIZE, XI_SIZE } from '@/engine';
 import { TEAM_META } from '@/data/teams';
 import { cn, initials } from '@/utils';
 
@@ -48,6 +48,7 @@ export function SlotRail({ squad, pendingPlayer, onAssign, className }: SlotRail
         }
 
         const selectable = assigning;
+        const isBench = pos >= XI_SIZE;
         return (
           <motion.button
             key={pos}
@@ -55,14 +56,16 @@ export function SlotRail({ squad, pendingPlayer, onAssign, className }: SlotRail
             disabled={!selectable}
             onClick={() => selectable && onAssign(pos)}
             whileTap={selectable ? { scale: 0.9 } : undefined}
+            title={isBench ? 'Bench' : `Slot ${pos + 1}`}
             className={cn(
               'grid h-9 place-items-center rounded-lg border text-xs font-700 tabular-nums transition-colors',
               selectable
                 ? 'cursor-pointer animate-pulse border-gold/70 bg-gold/15 text-gold-soft'
                 : 'border-dashed border-white/15 text-slate-500',
+              isBench && !selectable && 'border-white/10 text-slate-600',
             )}
           >
-            {pos + 1}
+            {isBench ? 'B' : pos + 1}
           </motion.button>
         );
       })}

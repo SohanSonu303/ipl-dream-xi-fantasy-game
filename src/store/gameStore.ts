@@ -1,8 +1,11 @@
 import { create } from 'zustand';
 import type {
+  GameMode,
   GamePhase,
+  MatchResult,
   Player,
   PlayerRole,
+  SeasonOutcome,
   SeasonResult,
   SquadSlot,
   TeamCode,
@@ -11,19 +14,75 @@ import type {
 import {
   MAX_REROLLS,
   SQUAD_SIZE,
+  USER_TEAM_ID,
+  VS_OPP_ID,
+  VS_USER_ID,
+  XI_SIZE,
+  analyzeChemistry,
   analyzeComposition,
+  analyzePositions,
   buildOffer,
   buildUserTeam,
   computeStrength,
   drawTeam,
-  simulateSeason,
+  finalMargin,
+  finishStagedSeason,
+  hydrateSharedTeam,
+  prepareStagedSeason,
+  simulateSeries,
+  type Chemistry,
+  type PositionAnalysis,
+  type StagedSeason,
+  type VersusResult,
 } from '@/engine';
 import type { Composition } from '@/types';
+import { hashString, random, resetRng, round, seedRng } from '@/utils';
+import type { SharedTeam } from '@/utils/shareCode';
+import { dailySeed, recordDailyResult, todayKey } from '@/data/daily';
+
+/** The XI in batting order (slots 0..10). */
+function xiOrdered(squad: SquadSlot[]): Player[] {
+  return squad
+    .filter((s) => s.position < XI_SIZE)
+    .sort((a, b) => a.position - b.position)
+    .map((s) => s.player);
+}
+
+/** Bench players (slots 11..12) in order. */
+function benchOf(squad: SquadSlot[]): Player[] {
+  return squad
+    .filter((s) => s.position >= XI_SIZE)
+    .sort((a, b) => a.position - b.position)
+    .map((s) => s.player);
+}
+
+/** A mid-season Impact Player substitution: bench player in for an XI slot. */
+export interface ImpactSwap {
+  benchIndex: number;
+  xiPosition: number;
+}
+
+function recordDailyToday(result: SeasonResult, teamName: string): void {
+  recordDailyResult({
+    date: todayKey(),
+    outcome: result.userOutcome,
+    position: result.userStanding.position,
+    won: result.userStanding.won,
+    lost: result.userStanding.lost,
+    points: result.userStanding.points,
+    teamPower: result.userStanding.team.strength.teamPower,
+    teamName: teamName || DEFAULT_NAME,
+  });
+}
 
 interface GameState {
   phase: GamePhase;
+  /** Free play (fresh randomness) or the reproducible Daily Challenge. */
+  mode: GameMode;
   teamName: string;
   squad: SquadSlot[];
+  /** Drafted player id chosen as captain (optional leadership bonus). */
+  captainId: number | null;
   currentTeam: TeamCode | null;
   lastTeam: TeamCode | null;
   rerollsUsed: number;
@@ -34,16 +93,37 @@ interface GameState {
   /** Set true briefly to drive the roll/shuffle animation. */
   isRolling: boolean;
   seasonResult: SeasonResult | null;
+  /** Decoded opponent XI for a friend battle (versus mode). */
+  opponent: SharedTeam | null;
+  /** Result of the head-to-head series. */
+  versusResult: VersusResult | null;
+
+  // --- staged season (impact player + playable final) ---
+  /** Fixed first part of the season, awaiting the impact decision. */
+  stagedSeason: StagedSeason | null;
+  /** User's second-half league matches (after the impact decision). */
+  userSecondHalf: MatchResult[];
+  /** True once an impact swap has been made (one per season). */
+  impactUsed: boolean;
+  /** True when the final is unplayed because the user reached it. */
+  userInFinal: boolean;
+  /** The other finalist's id when the user reaches the final. */
+  finalOpponentId: string | null;
 
   // --- actions ---
-  startDraft: () => void;
+  startDraft: (mode?: GameMode) => void;
+  startVersus: (opponent: SharedTeam) => void;
   setTeamName: (name: string) => void;
+  setCaptain: (playerId: number) => void;
   rollTeam: () => void;
   reroll: () => void;
   pickPlayer: (player: Player) => void;
   cancelPick: () => void;
   assignToPosition: (position: number) => void;
-  runSimulation: () => void;
+  beginSeason: () => void;
+  resolveSeason: (swap: ImpactSwap | null) => void;
+  applyFinalResult: (userWon: boolean, userScore: number, target: number) => void;
+  runVersus: () => void;
   resetGame: () => void;
 }
 
@@ -51,6 +131,7 @@ const DEFAULT_NAME = 'My Dream XI';
 
 const initialDraftState = {
   squad: [] as SquadSlot[],
+  captainId: null as number | null,
   currentTeam: null as TeamCode | null,
   lastTeam: null as TeamCode | null,
   rerollsUsed: 0,
@@ -58,17 +139,45 @@ const initialDraftState = {
   pendingPlayer: null as Player | null,
   isRolling: false,
   seasonResult: null as SeasonResult | null,
+  versusResult: null as VersusResult | null,
+  stagedSeason: null as StagedSeason | null,
+  userSecondHalf: [] as MatchResult[],
+  impactUsed: false,
+  userInFinal: false,
+  finalOpponentId: null as string | null,
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
   phase: 'home',
+  mode: 'free',
   teamName: DEFAULT_NAME,
+  opponent: null,
   ...initialDraftState,
 
-  startDraft: () =>
-    set({ phase: 'draft', ...initialDraftState }),
+  startDraft: (mode = 'free') => {
+    // Daily Challenge: seed the whole draw so every player gets the same rolls
+    // and packs today. Free play restores fresh, non-deterministic randomness.
+    if (mode === 'daily') seedRng(dailySeed());
+    else resetRng();
+    set({ phase: 'draft', mode, opponent: null, ...initialDraftState });
+  },
+
+  startVersus: (opponent) => {
+    // The challenger drafts their own XI with fresh randomness; only the series
+    // itself is seeded (in simulateSeries) so the head-to-head stays fair.
+    resetRng();
+    set({ phase: 'draft', mode: 'versus', opponent, ...initialDraftState });
+  },
 
   setTeamName: (name) => set({ teamName: name.slice(0, 24) || DEFAULT_NAME }),
+
+  setCaptain: (playerId) =>
+    set((s) => {
+      const slot = s.squad.find((sl) => sl.player.id === playerId);
+      // Only an XI player (not a bench player) can be captain.
+      if (!slot || slot.position >= XI_SIZE) return {};
+      return { captainId: s.captainId === playerId ? null : playerId };
+    }),
 
   rollTeam: () => {
     const { currentTeam, squad, isRolling } = get();
@@ -129,17 +238,142 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 
-  runSimulation: () => {
-    const { squad, teamName } = get();
+  // Stage 1: build the user's XI and play the fixed part of the season +
+  // first half, pausing for the mid-season Impact Player decision.
+  beginSeason: () => {
+    const { squad, teamName, captainId, mode } = get();
     if (squad.length !== SQUAD_SIZE) return;
-    const players = squad.map((s) => s.player);
-    const strength = computeStrength(players);
-    const userTeam = buildUserTeam(teamName || DEFAULT_NAME, strength);
-    const seasonResult = simulateSeason(userTeam);
-    set({ phase: 'simulation', seasonResult });
+
+    // Daily: seed from the date + initial XI so the run is reproducible and a
+    // pure skill puzzle (you can't re-roll for a luckier result).
+    if (mode === 'daily') {
+      const xiKey = squad
+        .map((s) => `${s.position}:${s.player.id}`)
+        .sort()
+        .join('|');
+      seedRng(dailySeed() ^ hashString(`${captainId ?? 'noC'}#${xiKey}`));
+    } else {
+      resetRng();
+    }
+
+    const userTeam = buildUserTeam(teamName || DEFAULT_NAME, xiOrdered(squad), captainId);
+    const stagedSeason = prepareStagedSeason(userTeam);
+
+    set({
+      phase: 'simulation',
+      stagedSeason,
+      seasonResult: null,
+      userSecondHalf: [],
+      impactUsed: false,
+      userInFinal: false,
+      finalOpponentId: null,
+    });
   },
 
-  resetGame: () => set({ phase: 'home', teamName: DEFAULT_NAME, ...initialDraftState }),
+  // Stage 2: apply the optional impact swap, then finish the season (remaining
+  // games + playoffs) with the resulting XI. The final is deferred if reached.
+  resolveSeason: (swap) => {
+    const { stagedSeason, squad, teamName, captainId, mode } = get();
+    if (!stagedSeason) return;
+
+    let xi = xiOrdered(squad);
+    let cap = captainId;
+
+    if (swap) {
+      const incoming = benchOf(squad)[swap.benchIndex];
+      const outgoing = xi[swap.xiPosition];
+      if (incoming && outgoing) {
+        xi = xi.map((p, i) => (i === swap.xiPosition ? incoming : p));
+        if (cap === outgoing.id) cap = null; // captain subbed out
+      }
+    }
+
+    const userTeam = buildUserTeam(teamName || DEFAULT_NAME, xi, cap);
+    const finished = finishStagedSeason(stagedSeason, userTeam);
+
+    // Lock in the Daily result now if the season is fully decided. If the user
+    // reached the final, recording waits until the live over is bowled.
+    if (mode === 'daily' && !finished.userInFinal) {
+      recordDailyToday(finished.seasonResult, teamName);
+    }
+
+    resetRng(); // live over / confetti should feel alive
+    set({
+      seasonResult: finished.seasonResult,
+      userSecondHalf: finished.userSecondHalf,
+      userInFinal: finished.userInFinal,
+      finalOpponentId: finished.finalOpponentId,
+      impactUsed: !!swap,
+      captainId: cap,
+    });
+  },
+
+  // Stage 3 (only when the user is a finalist): fill in the final from the
+  // outcome of the playable last over.
+  applyFinalResult: (userWon, userScore, target) => {
+    const { seasonResult, finalOpponentId, teamName, mode } = get();
+    if (!seasonResult || !finalOpponentId) return;
+
+    const playoffs = seasonResult.playoffs.map((p) => ({ ...p }));
+    const finalIdx = playoffs.findIndex((p) => p.stage === 'FINAL');
+    const fm = playoffs[finalIdx];
+
+    const winnerId = userWon ? USER_TEAM_ID : finalOpponentId;
+    const loserId = userWon ? finalOpponentId : USER_TEAM_ID;
+    const margin = finalMargin(userScore, target);
+    // Keep the bracket's score scale consistent with the other rounds.
+    const loserPerf = round(78 + random() * 6, 2);
+    const winnerPerf = round(loserPerf + margin, 2);
+    const aIsWinner = fm.teamAId === winnerId;
+
+    const result: MatchResult = {
+      id: 'PO_FINAL',
+      homeId: fm.teamAId,
+      awayId: fm.teamBId,
+      homeScore: aIsWinner ? winnerPerf : loserPerf,
+      awayScore: aIsWinner ? loserPerf : winnerPerf,
+      winnerId,
+      loserId,
+      margin,
+    };
+    playoffs[finalIdx] = { ...fm, result };
+
+    const userOutcome: SeasonOutcome = userWon ? 'CHAMPION' : 'RUNNER_UP';
+    const newSeason: SeasonResult = {
+      ...seasonResult,
+      playoffs,
+      championId: winnerId,
+      runnerUpId: loserId,
+      userOutcome,
+    };
+
+    if (mode === 'daily') recordDailyToday(newSeason, teamName);
+    set({ seasonResult: newSeason, userInFinal: false });
+  },
+
+  runVersus: () => {
+    const { squad, teamName, captainId, opponent } = get();
+    if (squad.length !== SQUAD_SIZE || !opponent) return;
+
+    const userTeam = buildUserTeam(teamName || DEFAULT_NAME, xiOrdered(squad), captainId);
+    userTeam.id = VS_USER_ID; // distinct ids so the series can tell sides apart
+    const oppTeam = hydrateSharedTeam(opponent, VS_OPP_ID, false);
+    if (!oppTeam) return;
+
+    const versusResult = simulateSeries(userTeam, oppTeam, 3);
+    set({ phase: 'simulation', versusResult });
+  },
+
+  resetGame: () => {
+    resetRng();
+    set({
+      phase: 'home',
+      mode: 'free',
+      teamName: DEFAULT_NAME,
+      opponent: null,
+      ...initialDraftState,
+    });
+  },
 }));
 
 // --- selectors / derived helpers -------------------------------------------
@@ -153,19 +387,39 @@ export function useSelectablePlayers(): Player[] {
   return useGameStore((s) => s.offer);
 }
 
+/** Strength of the starting XI (bench excluded). */
 export function useSquadStrength(): TeamStrength | null {
   const squad = useGameStore((s) => s.squad);
-  if (squad.length === 0) return null;
-  return computeStrength(squad.map((s) => s.player));
+  const xi = xiOrdered(squad);
+  if (xi.length === 0) return null;
+  return computeStrength(xi);
 }
 
-/** Live fair-play composition analysis of the current squad. */
+/** Live fair-play composition analysis of the starting XI. */
 export function useComposition(): Composition {
   const squad = useGameStore((s) => s.squad);
-  return analyzeComposition(squad.map((s) => s.player));
+  return analyzeComposition(xiOrdered(squad));
 }
 
-/** Count of drafted players per role, for the balance meter. */
+/** Live squad chemistry (club + national links) for the starting XI. */
+export function useChemistry(): Chemistry {
+  const squad = useGameStore((s) => s.squad);
+  return analyzeChemistry(xiOrdered(squad));
+}
+
+/** Live batting-order fit analysis for the starting XI. */
+export function usePositions(): PositionAnalysis {
+  const squad = useGameStore((s) => s.squad);
+  return analyzePositions(xiOrdered(squad));
+}
+
+/** Bench players (for the Impact Player picker). */
+export function useBench(): Player[] {
+  const squad = useGameStore((s) => s.squad);
+  return benchOf(squad);
+}
+
+/** Count of XI players per role, for the balance meter. */
 export function useRoleBalance(): Record<PlayerRole, number> {
   const squad = useGameStore((s) => s.squad);
   const base: Record<PlayerRole, number> = {
@@ -174,8 +428,10 @@ export function useRoleBalance(): Record<PlayerRole, number> {
     ALL_ROUNDER: 0,
     WICKET_KEEPER: 0,
   };
-  for (const slot of squad) base[slot.player.role]++;
+  for (const slot of squad) {
+    if (slot.position < XI_SIZE) base[slot.player.role]++;
+  }
   return base;
 }
 
-export { SQUAD_SIZE, MAX_REROLLS };
+export { SQUAD_SIZE, XI_SIZE, MAX_REROLLS };

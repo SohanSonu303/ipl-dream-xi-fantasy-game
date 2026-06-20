@@ -5,9 +5,15 @@ import { deriveOutcome, simulatePlayoffs } from './playoffEngine';
 export * from './draftEngine';
 export * from './teamStrengthEngine';
 export * from './compositionEngine';
+export * from './chemistryEngine';
+export * from './positionEngine';
 export * from './seasonEngine';
+export * from './seasonStagedEngine';
 export * from './matchEngine';
 export * from './playoffEngine';
+export * from './chaseEngine';
+export * from './playableEngine';
+export * from './versusEngine';
 
 /**
  * Full season pipeline: drop the user's XI into the franchise league,

@@ -1,15 +1,20 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import type { SquadSlot } from '@/types';
 import {
   MAX_REROLLS,
   SQUAD_SIZE,
+  XI_SIZE,
+  useChemistry,
   useComposition,
   useGameStore,
+  usePositions,
   useRoleBalance,
   useSelectablePlayers,
   useSquadStrength,
 } from '@/store/gameStore';
+import { getTrait } from '@/data/playerMeta';
 import { PlayerCard } from '@/components/Shared/PlayerCard';
 import { TeamReel } from '@/components/Draft/TeamReel';
 import { SquadBoard } from '@/components/Squad/SquadBoard';
@@ -23,23 +28,31 @@ export function DraftPage() {
   const {
     squad,
     teamName,
+    captainId,
+    mode,
+    opponent,
     currentTeam,
     isRolling,
     pendingPlayer,
     rerollsUsed,
     setTeamName,
+    setCaptain,
     rollTeam,
     reroll,
     pickPlayer,
     cancelPick,
     assignToPosition,
+    runVersus,
   } = useGameStore();
 
   const pool = useSelectablePlayers();
   const strength = useSquadStrength();
   const roleBalance = useRoleBalance();
   const composition = useComposition();
+  const chemistry = useChemistry();
+  const positions = usePositions();
 
+  const isVersus = mode === 'versus';
   const isFull = squad.length >= SQUAD_SIZE;
   const canRoll = !currentTeam && !pendingPlayer && !isRolling && !isFull;
   const canReroll = Boolean(currentTeam) && !pendingPlayer && !isRolling && rerollsUsed < MAX_REROLLS;
@@ -52,7 +65,15 @@ export function DraftPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const goSimulate = () => navigate('/simulate');
+  const goNext = () => {
+    if (isVersus) {
+      runVersus();
+      navigate('/versus-result');
+    } else {
+      navigate('/simulate');
+    }
+  };
+  const ctaLabel = isVersus ? 'Play the Series' : 'Simulate Season';
 
   return (
     <PageTransition className="pb-28">
@@ -77,6 +98,16 @@ export function DraftPage() {
         </div>
       </header>
 
+      {/* Versus opponent banner */}
+      {isVersus && opponent && (
+        <div className="mb-4 flex items-center justify-center gap-2 rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm">
+          <span>⚔️</span>
+          <span className="text-slate-300">
+            Drafting against <strong className="text-red-200">{opponent.name}</strong> — best of 3
+          </span>
+        </div>
+      )}
+
       {/* Progress bar */}
       <div className="mb-5">
         <div className="mb-1.5 flex items-center justify-between">
@@ -100,7 +131,14 @@ export function DraftPage() {
         {/* ---- Draft stage ---- */}
         <section className="order-1">
           {isFull ? (
-            <SquadCompleteCard onSimulate={goSimulate} power={strength?.teamPower ?? 0} />
+            <SquadCompleteCard
+              onSimulate={goNext}
+              ctaLabel={ctaLabel}
+              power={strength?.teamPower ?? 0}
+              squad={squad}
+              captainId={captainId}
+              onSetCaptain={setCaptain}
+            />
           ) : (
             <div className="panel p-4 sm:p-5">
               <TeamReel rolling={isRolling} settledTeam={currentTeam} />
@@ -158,7 +196,7 @@ export function DraftPage() {
                         <SectionLabel>Pick One</SectionLabel>
                         <span className="text-xs text-slate-500">{pool.length} revealed</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
+                      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
                         <AnimatePresence mode="popLayout">
                           {pool.map((player, i) => (
                             <PlayerCard
@@ -167,6 +205,7 @@ export function DraftPage() {
                               index={i}
                               onSelect={pickPlayer}
                               selected={pendingPlayer?.id === player.id}
+                              trait={getTrait(player.id)?.label}
                             />
                           ))}
                         </AnimatePresence>
@@ -200,6 +239,8 @@ export function DraftPage() {
             strength={strength}
             roleBalance={roleBalance}
             composition={composition}
+            chemistry={chemistry}
+            positions={positions}
             count={squad.length}
           />
           <div className="panel p-4">
@@ -220,13 +261,13 @@ export function DraftPage() {
           >
             <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
               <div className="min-w-0">
-                <div className="stat-label">Squad complete</div>
+                <div className="stat-label">{isVersus ? 'Ready to battle' : 'Squad complete'}</div>
                 <div className="truncate font-display text-base font-700 uppercase">
                   {teamName} · Power {strength?.teamPower ?? 0}
                 </div>
               </div>
-              <button onClick={goSimulate} className="btn-primary shrink-0 px-8">
-                Simulate Season
+              <button onClick={goNext} className="btn-primary shrink-0 px-8">
+                {ctaLabel}
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.5}>
                   <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -258,12 +299,31 @@ function RerollPips({ used }: { used: number }) {
   );
 }
 
-function SquadCompleteCard({ onSimulate, power }: { onSimulate: () => void; power: number }) {
+function SquadCompleteCard({
+  onSimulate,
+  ctaLabel,
+  power,
+  squad,
+  captainId,
+  onSetCaptain,
+}: {
+  onSimulate: () => void;
+  ctaLabel: string;
+  power: number;
+  squad: SquadSlot[];
+  captainId: number | null;
+  onSetCaptain: (playerId: number) => void;
+}) {
+  const ordered = squad
+    .filter((s) => s.position < XI_SIZE)
+    .sort((a, b) => a.position - b.position);
+  const captain = ordered.find((s) => s.player.id === captainId)?.player ?? null;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="panel relative overflow-hidden p-8 text-center"
+      className="panel relative overflow-hidden p-6 text-center sm:p-8"
     >
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.18),transparent_60%)]" />
       <span className="pill mx-auto border border-gold/30 bg-gold/10 text-gold-soft">XI Locked In</span>
@@ -272,8 +332,43 @@ function SquadCompleteCard({ onSimulate, power }: { onSimulate: () => void; powe
         Eleven drafted, balanced and rated. Team Power sits at{' '}
         <strong className="text-gold-soft">{power}</strong>. Time to chase the trophy.
       </p>
+
+      {/* Captain picker */}
+      <div className="mt-6 text-left">
+        <div className="mb-2 flex items-center justify-between">
+          <SectionLabel>Name Your Captain</SectionLabel>
+          <span className="text-[11px] text-slate-500">
+            {captain ? `(C) ${captain.name}` : 'optional · +leadership'}
+          </span>
+        </div>
+        <div className="flex flex-wrap justify-center gap-1.5">
+          {ordered.map(({ player }) => {
+            const isCap = player.id === captainId;
+            return (
+              <button
+                key={player.id}
+                onClick={() => onSetCaptain(player.id)}
+                className={cn(
+                  'rounded-lg border px-2.5 py-1 text-xs font-600 transition-colors',
+                  isCap
+                    ? 'border-gold bg-gold/20 text-gold-soft shadow-glow'
+                    : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/25',
+                )}
+                title={isCap ? 'Tap to remove captaincy' : 'Make captain'}
+              >
+                {isCap && <span className="mr-1 text-gold">★</span>}
+                {player.name}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-2 text-center text-[11px] leading-relaxed text-slate-500">
+          Your captain lifts team power and is favoured for Player-of-the-Match honours.
+        </p>
+      </div>
+
       <button onClick={onSimulate} className="btn-primary mx-auto mt-6 px-10 py-4 text-lg">
-        Simulate Season
+        {ctaLabel}
       </button>
     </motion.div>
   );

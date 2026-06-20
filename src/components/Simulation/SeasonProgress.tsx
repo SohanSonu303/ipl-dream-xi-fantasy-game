@@ -9,12 +9,21 @@ interface SeasonProgressProps {
   teamById: Map<string, SeasonTeam>;
   userId: string;
   onComplete: () => void;
+  /** Title shown above the run-through. */
+  title?: string;
+  /** Delay between revealed matches (ms). Higher = more watchable. */
+  stepMs?: number;
 }
 
-const STEP_MS = 150;
-
 /** Animated league run-through: reveals the user's results one by one. */
-export function SeasonProgress({ userMatches, teamById, userId, onComplete }: SeasonProgressProps) {
+export function SeasonProgress({
+  userMatches,
+  teamById,
+  userId,
+  onComplete,
+  title = 'Season In Progress',
+  stepMs = 150,
+}: SeasonProgressProps) {
   const [revealed, setRevealed] = useState(0);
   const total = userMatches.length;
 
@@ -23,9 +32,9 @@ export function SeasonProgress({ userMatches, teamById, userId, onComplete }: Se
       const t = window.setTimeout(onComplete, 650);
       return () => window.clearTimeout(t);
     }
-    const t = window.setTimeout(() => setRevealed((r) => r + 1), STEP_MS);
+    const t = window.setTimeout(() => setRevealed((r) => r + 1), stepMs);
     return () => window.clearTimeout(t);
-  }, [revealed, total, onComplete]);
+  }, [revealed, total, onComplete, stepMs]);
 
   const shown = userMatches.slice(0, revealed);
   const wins = shown.filter((m) => m.winnerId === userId).length;
@@ -39,7 +48,7 @@ export function SeasonProgress({ userMatches, teamById, userId, onComplete }: Se
   return (
     <div className="panel mx-auto max-w-lg p-6 text-center sm:p-8">
       <span className="pill mx-auto border border-gold/30 bg-gold/10 text-gold-soft">Simulating League</span>
-      <h2 className="heading-display mt-4 text-2xl font-700 uppercase sm:text-3xl">Season In Progress</h2>
+      <h2 className="heading-display mt-4 text-2xl font-700 uppercase sm:text-3xl">{title}</h2>
 
       {/* Latest result flash */}
       <div className="mt-6 grid h-24 place-items-center">
@@ -66,6 +75,12 @@ export function SeasonProgress({ userMatches, teamById, userId, onComplete }: Se
                 <TeamBadge code={opp.code} size="sm" />
                 <span className="font-600">{opp.name}</span>
               </span>
+              {latest.playerOfMatchName && (
+                <span className="ml-1 hidden items-center gap-1 text-xs text-gold-soft sm:flex">
+                  <span>★</span>
+                  <span className="max-w-[8rem] truncate">{latest.playerOfMatchName}</span>
+                </span>
+              )}
             </motion.div>
           ) : (
             <span className="text-sm text-slate-500">Taking the field…</span>
@@ -85,7 +100,7 @@ export function SeasonProgress({ userMatches, teamById, userId, onComplete }: Se
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-gold-soft to-gold-deep"
             animate={{ width: `${pct}%` }}
-            transition={{ ease: 'linear', duration: STEP_MS / 1000 }}
+            transition={{ ease: 'linear', duration: stepMs / 1000 }}
           />
         </div>
       </div>
