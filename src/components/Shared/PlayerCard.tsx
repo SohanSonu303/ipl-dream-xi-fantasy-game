@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import type { Player } from '@/types';
 import { TEAM_META, ROLE_LABELS, ROLE_SHORT } from '@/data/teams';
 import { RARITY_META } from '@/data/primeEditions';
+import { isProspect } from '@/data/playerMeta';
 import { cn, initials } from '@/utils';
 
 interface PlayerCardProps {
@@ -119,6 +120,15 @@ export function PlayerCard({
             {player.team}
           </span>
           <span className="stat-label truncate">{compact ? ROLE_SHORT[player.role] : ROLE_LABELS[player.role]}</span>
+          {player.devBoost ? (
+            <span className="inline-flex w-fit items-center gap-0.5 rounded bg-emerald-500/15 px-1 py-px text-[8px] font-700 uppercase tracking-wide text-emerald-300" title="Career growth from playing this prospect">
+              🌱 +{player.devBoost}
+            </span>
+          ) : isProspect(player.id) ? (
+            <span className="inline-flex w-fit items-center gap-0.5 rounded bg-emerald-500/10 px-1 py-px text-[8px] font-700 uppercase tracking-wide text-emerald-300/80" title="Young prospect — field them to grow their stats">
+              🌱 Prospect
+            </span>
+          ) : null}
         </div>
         <div className="flex flex-col items-center">
           <span

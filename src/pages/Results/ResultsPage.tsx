@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
@@ -6,6 +6,7 @@ import { SEASON_LABEL, USER_TEAM_ID } from '@/engine';
 import { OUTCOME_META } from '@/data/outcomes';
 import { currentStreak, dailyNumber } from '@/data/daily';
 import { getTrait } from '@/data/playerMeta';
+import { type DevGain, addCoins, collectCards, developFromSquad, recordGamePlayed, seasonReward } from '@/data/profile';
 import { ordinal } from '@/utils';
 import { PlayerCard } from '@/components/Shared/PlayerCard';
 import { LeagueTable } from '@/components/Simulation/LeagueTable';
@@ -22,10 +23,31 @@ export function ResultsPage() {
   const teamName = useGameStore((s) => s.teamName);
   const captainId = useGameStore((s) => s.captainId);
   const mode = useGameStore((s) => s.mode);
+  const rewarded = useGameStore((s) => s.rewarded);
+  const markRewarded = useGameStore((s) => s.markRewarded);
+  const [reward, setReward] = useState<number | null>(null);
+  const [grown, setGrown] = useState<DevGain[]>([]);
 
   useEffect(() => {
     if (!seasonResult) navigate('/', { replace: true });
   }, [seasonResult, navigate]);
+
+  // Grant the season reward once: coins for the result + the XI joins your
+  // permanent Collection. Daily is excluded from re-rewards by the same guard.
+  useEffect(() => {
+    if (!seasonResult || rewarded) return;
+    const st = seasonResult.userStanding;
+    const won = seasonResult.userOutcome === 'CHAMPION';
+    const breakdown = seasonReward(seasonResult.userOutcome, st.won, st.position, mode === 'daily');
+    addCoins(breakdown.total);
+    collectCards(squad.map((s) => s.player));
+    // Prospects who played this season grow toward their potential.
+    const gains = developFromSquad(squad.filter((s) => s.position < 11).map((s) => s.player.id));
+    recordGamePlayed(won);
+    markRewarded();
+    setReward(breakdown.total);
+    setGrown(gains);
+  }, [seasonResult, rewarded, mode, squad, markRewarded]);
 
   const teamById = useMemo(
     () => new Map((seasonResult?.standings ?? []).map((s) => [s.team.id, s.team])),
@@ -164,6 +186,18 @@ export function ResultsPage() {
           </span>
         </div>
 
+        {reward != null && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mx-auto mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-xl border border-gold/30 bg-gold/10 px-4 py-2 text-sm"
+          >
+            <span className="font-display font-700 text-gold-soft">🪙 +{reward} coins</span>
+            {userStanding.position <= 4 && <span className="text-emerald-300">+ Top-4 bonus 🎉</span>}
+            <span className="text-slate-400">· XI added to your Collection · bigger auction purse next time</span>
+          </motion.div>
+        )}
+
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <ShareButton image={shareImage} caption={shareText} fileBaseName={fileBaseName} />
           <ChallengeButton squad={squad} captainId={captainId} teamName={teamName} />
@@ -220,6 +254,34 @@ export function ResultsPage() {
           <span className="pill shrink-0 border border-gold/30 bg-gold/10 text-gold-soft">
             {playerOfSeason.awards} × MOTM
           </span>
+        </motion.section>
+      )}
+
+      {/* Academy — prospects who grew */}
+      {grown.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-5 rounded-2xl border border-emerald-400/25 bg-gradient-to-r from-emerald-500/[0.08] to-transparent p-4"
+        >
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-xl">🌱</span>
+            <SectionLabel>Academy · {grown.length} prospect{grown.length === 1 ? '' : 's'} developed</SectionLabel>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {grown.map((g) => {
+              const name = squad.find((s) => s.player.id === g.playerId)?.player.name ?? 'Player';
+              const maxed = g.total >= g.potential;
+              return (
+                <span key={g.playerId} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs">
+                  <span className="font-600 text-emerald-100">{name}</span>
+                  <span className="font-display font-700 text-emerald-300">+{g.gain} OVR</span>
+                  <span className="text-emerald-400/70">{maxed ? '· peaked' : `· ${g.total}/${g.potential}`}</span>
+                </span>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-[11px] text-slate-400">Keep fielding your young guns — they get stronger every season you play them.</p>
         </motion.section>
       )}
 

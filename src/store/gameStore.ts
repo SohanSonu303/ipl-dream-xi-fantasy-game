@@ -12,6 +12,7 @@ import type {
   TeamStrength,
 } from '@/types';
 import {
+  AUCTION_SIGN_LIMIT,
   MAX_REROLLS,
   SQUAD_SIZE,
   USER_TEAM_ID,
@@ -29,6 +30,7 @@ import {
   finishStagedSeason,
   hydrateSharedTeam,
   prepareStagedSeason,
+  seedSlots,
   simulateSeries,
   type Chemistry,
   type PositionAnalysis,
@@ -61,7 +63,7 @@ function xiByPosition(squad: SquadSlot[]): (Player | undefined)[] {
   return arr;
 }
 
-/** Bench players (slots 11..12) in order. */
+/** Bench players (slots 11..) in order. */
 function benchOf(squad: SquadSlot[]): Player[] {
   return squad
     .filter((s) => s.position >= XI_SIZE)
@@ -122,21 +124,33 @@ interface GameState {
   userInFinal: boolean;
   /** The other finalist's id when the user reaches the final. */
   finalOpponentId: string | null;
+  /** True once the season's coin/collection reward has been granted. */
+  rewarded: boolean;
 
   // --- actions ---
-  startDraft: (mode?: GameMode) => void;
+  /**
+   * Enter the draft. In free play you may pre-seed up to AUCTION_SIGN_LIMIT
+   * headliners (chosen from your Collection / auction wins); the rest of the
+   * squad is filled through the random rolls.
+   */
+  startDraft: (mode?: GameMode, seed?: Player[]) => void;
+  /** Enter the draft pre-seeded with the (≤3) players signed at auction. */
+  startAuctionDraft: (signed: Player[], teamName: string) => void;
   startVersus: (opponent: SharedTeam) => void;
   setTeamName: (name: string) => void;
   setCaptain: (playerId: number) => void;
+  /** Replace the squad (used by the lineup editor to re-order the XI). */
+  setSquad: (squad: SquadSlot[]) => void;
   rollTeam: () => void;
   reroll: () => void;
   pickPlayer: (player: Player) => void;
   cancelPick: () => void;
   assignToPosition: (position: number) => void;
   beginSeason: () => void;
-  resolveSeason: (swap: ImpactSwap | null) => void;
+  resolveSeason: (swaps: ImpactSwap[]) => void;
   applyFinalResult: (userWon: boolean, userScore: number, target: number) => void;
   runVersus: () => void;
+  markRewarded: () => void;
   resetGame: () => void;
 }
 
@@ -158,6 +172,7 @@ const initialDraftState = {
   impactUsed: false,
   userInFinal: false,
   finalOpponentId: null as string | null,
+  rewarded: false,
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -167,12 +182,15 @@ export const useGameStore = create<GameState>((set, get) => ({
   opponent: null,
   ...initialDraftState,
 
-  startDraft: (mode = 'free') => {
+  startDraft: (mode = 'free', seed = []) => {
     // Daily Challenge: seed the whole draw so every player gets the same rolls
     // and packs today. Free play restores fresh, non-deterministic randomness.
     if (mode === 'daily') seedRng(dailySeed());
     else resetRng();
-    set({ phase: 'draft', mode, opponent: null, ...initialDraftState });
+    // Pre-placed headliners are a free-play perk only — the Daily must stay the
+    // identical puzzle for everyone, so it always starts from an empty board.
+    const squad = mode === 'free' ? seedSlots(seed.slice(0, AUCTION_SIGN_LIMIT)) : [];
+    set({ phase: 'draft', mode, opponent: null, ...initialDraftState, squad });
   },
 
   startVersus: (opponent) => {
@@ -182,7 +200,29 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ phase: 'draft', mode: 'versus', opponent, ...initialDraftState });
   },
 
+  // Auction hands us up to 3 signed players, pre-placed into the XI. The rest of
+  // the squad is filled through the normal random draft from here.
+  startAuctionDraft: (signed, teamName) => {
+    resetRng();
+    set({
+      phase: 'draft',
+      mode: 'auction',
+      opponent: null,
+      ...initialDraftState,
+      squad: seedSlots(signed),
+      teamName: teamName || DEFAULT_NAME,
+    });
+  },
+
   setTeamName: (name) => set({ teamName: name.slice(0, 24) || DEFAULT_NAME }),
+
+  setSquad: (squad) =>
+    set((s) => {
+      // If the captain got moved to the bench, drop the armband.
+      const cap = squad.find((sl) => sl.player.id === s.captainId);
+      const captainId = cap && cap.position < XI_SIZE ? s.captainId : null;
+      return { squad: [...squad].sort((a, b) => a.position - b.position), captainId };
+    }),
 
   setCaptain: (playerId) =>
     set((s) => {
@@ -198,7 +238,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (currentTeam || isRolling || squad.length >= SQUAD_SIZE) return;
     const drafted = new Set(squad.map((s) => s.player.id));
     const next = drawTeam(get().lastTeam, drafted);
-    const allowPrime = get().mode !== 'versus';
+    const mode = get().mode;
+    const allowPrime = mode !== 'versus';
+    const develop = mode === 'free' || mode === 'auction';
     set({ isRolling: true });
     // The UI animation drives the reveal; settle shortly after.
     window.setTimeout(() => {
@@ -206,7 +248,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         currentTeam: next,
         lastTeam: next,
         isRolling: false,
-        offer: buildOffer(next, drafted, undefined, allowPrime),
+        offer: buildOffer(next, drafted, undefined, allowPrime, develop),
       });
     }, 900);
   },
@@ -216,7 +258,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!currentTeam || isRolling || rerollsUsed >= MAX_REROLLS) return;
     const drafted = new Set(squad.map((s) => s.player.id));
     const next = drawTeam(currentTeam, drafted);
-    const allowPrime = get().mode !== 'versus';
+    const mode = get().mode;
+    const allowPrime = mode !== 'versus';
+    const develop = mode === 'free' || mode === 'auction';
     set({ isRolling: true, pendingPlayer: null, currentTeam: null, offer: [] });
     window.setTimeout(() => {
       set({
@@ -224,7 +268,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         lastTeam: next,
         rerollsUsed: rerollsUsed + 1,
         isRolling: false,
-        offer: buildOffer(next, drafted, undefined, allowPrime),
+        offer: buildOffer(next, drafted, undefined, allowPrime, develop),
       });
     }, 900);
   },
@@ -285,17 +329,20 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 
-  // Stage 2: apply the optional impact swap, then finish the season (remaining
-  // games + playoffs) with the resulting XI. The final is deferred if reached.
-  resolveSeason: (swap) => {
+  // Stage 2: apply any impact swaps, then finish the season (remaining games +
+  // playoffs) with the resulting XI. The final is deferred if reached.
+  resolveSeason: (swaps) => {
     const { stagedSeason, squad, teamName, captainId, mode } = get();
     if (!stagedSeason) return;
 
     let xi = xiOrdered(squad);
     let cap = captainId;
+    const bench = benchOf(squad);
 
-    if (swap) {
-      const incoming = benchOf(squad)[swap.benchIndex];
+    // Each swap references the *original* bench index and XI position, so they
+    // apply independently (the UI keeps both sides unique).
+    for (const swap of swaps) {
+      const incoming = bench[swap.benchIndex];
       const outgoing = xi[swap.xiPosition];
       if (incoming && outgoing) {
         xi = xi.map((p, i) => (i === swap.xiPosition ? incoming : p));
@@ -318,7 +365,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       userSecondHalf: finished.userSecondHalf,
       userInFinal: finished.userInFinal,
       finalOpponentId: finished.finalOpponentId,
-      impactUsed: !!swap,
+      impactUsed: swaps.length > 0,
       captainId: cap,
     });
   },
@@ -378,6 +425,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     const versusResult = simulateSeries(userTeam, oppTeam, 3);
     set({ phase: 'simulation', versusResult });
   },
+
+  markRewarded: () => set({ rewarded: true }),
 
   resetGame: () => {
     resetRng();

@@ -7,6 +7,7 @@ import {
   computeStandings,
 } from './seasonEngine';
 import { simulateMatch } from './matchEngine';
+import { resetForm } from './formEngine';
 import { deriveOutcome, simulatePlayoffs } from './playoffEngine';
 
 // ---------------------------------------------------------------------------
@@ -41,6 +42,7 @@ export interface FinishedSeason {
 
 /** Play the fixed part of the season and the user's first half. */
 export function prepareStagedSeason(userTeam: SeasonTeam): StagedSeason {
+  resetForm(); // fresh momentum each season; carries through to finishStagedSeason
   const franchises = buildFranchiseTeams();
   const teams = [userTeam, ...franchises];
   const byId = new Map(teams.map((t) => [t.id, t]));

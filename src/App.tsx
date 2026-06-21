@@ -4,10 +4,13 @@ import { AnimatePresence } from 'framer-motion';
 import { BackgroundFX } from '@/components/Shared/BackgroundFX';
 import { HomePage } from '@/pages/Home/HomePage';
 import { DraftPage } from '@/pages/Draft/DraftPage';
+import { PreDraftPage } from '@/pages/Draft/PreDraftPage';
 import { SimulationPage } from '@/pages/Simulation/SimulationPage';
 import { ResultsPage } from '@/pages/Results/ResultsPage';
 import { VersusPage } from '@/pages/Versus/VersusPage';
 import { VersusResultPage } from '@/pages/Versus/VersusResultPage';
+import { CollectionPage } from '@/pages/Collection/CollectionPage';
+import { AuctionPage } from '@/pages/Auction/AuctionPage';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false } },
@@ -19,7 +22,10 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/pre-draft" element={<PreDraftPage />} />
         <Route path="/draft" element={<DraftPage />} />
+        <Route path="/auction" element={<AuctionPage />} />
+        <Route path="/collection" element={<CollectionPage />} />
         <Route path="/simulate" element={<SimulationPage />} />
         <Route path="/results" element={<ResultsPage />} />
         <Route path="/vs/:code" element={<VersusPage />} />

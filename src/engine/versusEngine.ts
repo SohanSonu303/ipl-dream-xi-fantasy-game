@@ -4,6 +4,7 @@ import { hashString, resetRng, seedRng } from '@/utils';
 import { ALL_PLAYERS } from './draftEngine';
 import { buildManagedTeam } from './seasonEngine';
 import { simulateMatch } from './matchEngine';
+import { resetForm } from './formEngine';
 
 // ---------------------------------------------------------------------------
 // Head-to-head friend battles. A shared XI is reconstructed from the dataset
@@ -67,6 +68,7 @@ export function simulateSeries(
   // Deterministic from both XIs: the same two teams always produce the same
   // series, so neither player can fish for a better outcome.
   seedRng(hashString(`${seriesKey(user)}|${seriesKey(opponent)}`));
+  resetForm(); // momentum builds within the series, fresh each time
 
   const matches: MatchResult[] = [];
   let userWins = 0;

@@ -1,11 +1,15 @@
 import type { MatchResult, Player, SeasonTeam } from '@/types';
 import { getTrait } from '@/data/playerMeta';
+import { gainForm, teamFormBonus } from './formEngine';
+import { type PitchType, pitchPerfMod, rollPitch } from './pitchEngine';
 import { clamp, random, randomFloat, round } from '@/utils';
 
 /** Extra context that lets signature traits fire (e.g. big-game temperament). */
 export interface MatchContext {
   /** Playoff / series-decider — unlocks knockout trait bonuses. */
   knockout?: boolean;
+  /** Force a specific pitch; otherwise one is rolled for the match. */
+  pitch?: PitchType;
 }
 
 /** Cap on the combined signature-trait performance bonus per side. */
@@ -107,7 +111,7 @@ function traitProfile(
   };
 }
 
-function performance(team: SeasonTeam, opp: SeasonTeam, ctx: MatchContext): number {
+function performance(team: SeasonTeam, opp: SeasonTeam, ctx: MatchContext, pitch: PitchType): number {
   const s = team.strength;
   const o = opp.strength;
 
@@ -121,8 +125,12 @@ function performance(team: SeasonTeam, opp: SeasonTeam, ctx: MatchContext): numb
 
   const form = bellSwing() * FORM_SCALE;
   const spark = random() < SPARK_CHANCE + sparkChance ? randomFloat(SPARK_MIN, SPARK_MAX) : 0;
+  // In-form players (recent MOM winners) lift the whole side a touch.
+  const momentum = teamFormBonus(team);
+  // The pitch rewards the side better built for the surface.
+  const conditions = pitchPerfMod(s, pitch);
 
-  return s.teamPower + matchup + form + spark + bonus;
+  return s.teamPower + matchup + form + spark + bonus + momentum + conditions;
 }
 
 /** Simulate a single match. There are no ties — power breaks a dead heat. */
@@ -132,8 +140,9 @@ export function simulateMatch(
   id: string,
   ctx: MatchContext = {},
 ): MatchResult {
-  let homeScore = performance(home, away, ctx);
-  let awayScore = performance(away, home, ctx);
+  const pitch = ctx.pitch ?? rollPitch();
+  let homeScore = performance(home, away, ctx, pitch);
+  let awayScore = performance(away, home, ctx, pitch);
 
   if (homeScore === awayScore) {
     homeScore += home.strength.teamPower - away.strength.teamPower || 0.1;
@@ -142,6 +151,8 @@ export function simulateMatch(
   const homeWins = homeScore > awayScore;
   const winner = homeWins ? home : away;
   const motm = awardPlayerOfMatch(winner);
+  // A standout performance lifts the player's form for the rest of the run.
+  if (motm) gainForm(motm.id);
 
   return {
     id,

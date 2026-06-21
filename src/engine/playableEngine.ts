@@ -50,11 +50,13 @@ function pickDeathBowler(team: SeasonTeam): Player {
  * stronger side) and the death-order batters (XI slots 6–11). Putting a real
  * finisher at slot 6 pays off here.
  */
-export function setupFinalOver(userTeam: SeasonTeam, oppTeam: SeasonTeam): FinalOverSetup {
+export function setupFinalOver(userTeam: SeasonTeam, oppTeam: SeasonTeam, targetDelta = 0): FinalOverSetup {
   // A demanding last over: typically ~15–18 to win, more when the opponent is
   // the stronger side. You'll need boundaries off nearly every ball — real risk.
+  // `targetDelta` folds in the pitch/toss (a flat deck eases it, a green seamer
+  // makes it harder).
   const target = Math.round(
-    clamp(17 + (oppTeam.strength.teamPower - userTeam.strength.teamPower) * 0.4 + randomFloat(-3, 3), 11, 21),
+    clamp(17 + (oppTeam.strength.teamPower - userTeam.strength.teamPower) * 0.4 + randomFloat(-3, 3) + targetDelta, 10, 22),
   );
   const xi = userTeam.players ?? [];
   // Death order: the finisher slot (index 5) onward, then the tail.
@@ -63,7 +65,7 @@ export function setupFinalOver(userTeam: SeasonTeam, oppTeam: SeasonTeam): Final
 }
 
 /** Roll the kind of delivery — better bowlers land more yorkers, fewer freebies. */
-function rollBallType(bowler: Player): BallType {
+export function rollBallType(bowler: Player): BallType {
   const skill = bowler.bowlingRating / 100;
   const pYorker = clamp(0.15 + (bowler.bowlingRating - 70) / 100, 0.1, 0.55);
   const pLoose = clamp(0.4 - skill * 0.3, 0.12, 0.42);

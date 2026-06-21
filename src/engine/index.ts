@@ -1,6 +1,7 @@
 import type { SeasonResult, SeasonTeam } from '@/types';
 import { buildFranchiseTeams, simulateLeague, USER_TEAM_ID } from './seasonEngine';
 import { deriveOutcome, simulatePlayoffs } from './playoffEngine';
+import { resetForm } from './formEngine';
 
 export * from './draftEngine';
 export * from './teamStrengthEngine';
@@ -8,12 +9,16 @@ export * from './compositionEngine';
 export * from './chemistryEngine';
 export * from './positionEngine';
 export * from './matchupEngine';
+export * from './auctionEngine';
 export * from './seasonEngine';
 export * from './seasonStagedEngine';
 export * from './matchEngine';
+export * from './formEngine';
+export * from './pitchEngine';
 export * from './playoffEngine';
 export * from './chaseEngine';
 export * from './playableEngine';
+export * from './fieldEngine';
 export * from './versusEngine';
 
 /**
@@ -21,6 +26,7 @@ export * from './versusEngine';
  * play the league stage, run the playoffs and derive the user's outcome.
  */
 export function simulateSeason(userTeam: SeasonTeam): SeasonResult {
+  resetForm();
   const teams: SeasonTeam[] = [userTeam, ...buildFranchiseTeams()];
 
   const { matches, standings } = simulateLeague(teams);

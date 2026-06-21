@@ -56,6 +56,18 @@ export function SimulationPage() {
     [squad],
   );
 
+  // First-half Player-of-the-Match tally for the user's own players — drives
+  // the "performed well / in form" badges on the impact screen.
+  const firstHalfMom = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const match of stagedSeason?.userFirstHalf ?? []) {
+      if (match.playerOfMatchTeamId === USER_TEAM_ID && match.playerOfMatchId != null) {
+        m.set(match.playerOfMatchId, (m.get(match.playerOfMatchId) ?? 0) + 1);
+      }
+    }
+    return m;
+  }, [stagedSeason]);
+
   // Cosmetic final chase (used only when the user is NOT in the final).
   const finalChase = useMemo(() => {
     const finalMatch = seasonResult?.playoffs.find((p) => p.stage === 'FINAL');
@@ -66,7 +78,7 @@ export function SimulationPage() {
   // Bailing out mid-flow: make sure a valid result exists before /results.
   const skip = () => {
     const st = useGameStore.getState();
-    if (!st.seasonResult) st.resolveSeason(null);
+    if (!st.seasonResult) st.resolveSeason([]);
     const after = useGameStore.getState();
     if (after.userInFinal && after.finalOpponentId) {
       const userPow = after.seasonResult?.userStanding.team.strength.teamPower ?? 70;
@@ -124,8 +136,9 @@ export function SimulationPage() {
             <ImpactPlayer
               xi={xiSlots}
               bench={bench}
-              onResolve={(swap) => {
-                resolveSeason(swap);
+              momByPlayer={firstHalfMom}
+              onResolve={(swaps) => {
+                resolveSeason(swaps);
                 setStage('secondHalf');
               }}
             />

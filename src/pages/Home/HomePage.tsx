@@ -14,6 +14,8 @@ import {
 } from '@/data/daily';
 import { TeamBadge } from '@/components/Shared/TeamBadge';
 import { PageTransition, Brand } from '@/components/Shared/ui';
+import { CoinPill } from '@/pages/Collection/CollectionPage';
+import { getCoins } from '@/data/profile';
 import { MAX_REROLLS, SEASON_LABEL } from '@/engine';
 import { ordinal } from '@/utils';
 
@@ -45,8 +47,20 @@ export function HomePage() {
     [],
   );
 
+  const coins = useMemo(() => getCoins(), []);
+
   const begin = (mode: GameMode = 'free') => {
     if (mode === 'daily' && daily.record) return; // one play per day
+    if (mode === 'auction') {
+      navigate('/auction');
+      return;
+    }
+    // Free play stops off at the headliner picker first (bring owned cards into
+    // the XI); the Daily Challenge goes straight to its fixed, seeded draft.
+    if (mode === 'free') {
+      navigate('/pre-draft');
+      return;
+    }
     startDraft(mode);
     navigate('/draft');
   };
@@ -55,7 +69,10 @@ export function HomePage() {
     <PageTransition className="flex min-h-dvh flex-col">
       <header className="flex items-center justify-between py-5">
         <Brand />
-        <span className="pill border border-white/10 bg-white/5 text-slate-300">{SEASON_LABEL}</span>
+        <div className="flex items-center gap-2">
+          <CoinPill coins={coins} />
+          <span className="hidden pill border border-white/10 bg-white/5 text-slate-300 sm:inline-flex">{SEASON_LABEL}</span>
+        </div>
       </header>
 
       <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
@@ -106,6 +123,16 @@ export function HomePage() {
             {data?.players.length ?? 100} players · {TEAM_CODES.length} franchises ·{' '}
             {MAX_REROLLS} reroll{MAX_REROLLS === 1 ? '' : 's'}
           </span>
+
+          {/* Secondary modes */}
+          <div className="mt-1 flex flex-wrap items-center justify-center gap-2.5">
+            <button onClick={() => begin('auction')} className="btn-ghost border-sky-400/40 text-sky-200">
+              ⚖️ Auction Draft
+            </button>
+            <button onClick={() => navigate('/collection')} className="btn-ghost border-purple-400/40 text-purple-200">
+              🃏 Collection
+            </button>
+          </div>
 
           <DailyCard
             number={daily.number}

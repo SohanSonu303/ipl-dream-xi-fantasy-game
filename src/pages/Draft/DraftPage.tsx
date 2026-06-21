@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { SquadSlot } from '@/types';
+import { LineupBuilder } from '@/components/Squad/LineupBuilder';
 import {
   MAX_REROLLS,
   SQUAD_SIZE,
@@ -42,8 +43,10 @@ export function DraftPage() {
     pickPlayer,
     cancelPick,
     assignToPosition,
+    setSquad,
     runVersus,
   } = useGameStore();
+  const [editingLineup, setEditingLineup] = useState(false);
 
   const pool = useSelectablePlayers();
   const strength = useSquadStrength();
@@ -57,9 +60,10 @@ export function DraftPage() {
   const canRoll = !currentTeam && !pendingPlayer && !isRolling && !isFull;
   const canReroll = Boolean(currentTeam) && !pendingPlayer && !isRolling && rerollsUsed < MAX_REROLLS;
 
-  // Auto-roll the very first team so the board is never blank on arrival.
+  // Auto-roll the first team so the board is never blank on arrival — including
+  // when the squad is pre-seeded with auction signings.
   useEffect(() => {
-    if (squad.length === 0 && !currentTeam && !isRolling && rerollsUsed === 0) {
+    if (!currentTeam && !isRolling && !isFull && rerollsUsed === 0) {
       rollTeam();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,6 +142,7 @@ export function DraftPage() {
               squad={squad}
               captainId={captainId}
               onSetCaptain={setCaptain}
+              onRearrange={() => setEditingLineup(true)}
             />
           ) : (
             <div className="panel p-4 sm:p-5">
@@ -276,6 +281,36 @@ export function DraftPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Lineup editor */}
+      <AnimatePresence>
+        {editingLineup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 overflow-y-auto bg-pitch-950/92 p-4 backdrop-blur-sm"
+          >
+            <div className="mx-auto max-w-2xl py-6">
+              <div className="mb-3 text-center">
+                <h2 className="heading-display text-2xl font-700 uppercase">Rearrange Your XI</h2>
+              </div>
+              <div className="panel p-4">
+                <LineupBuilder
+                  players={squad.map((s) => s.player)}
+                  initial={squad}
+                  confirmLabel="Save Lineup"
+                  onConfirm={(slots) => {
+                    setSquad(slots);
+                    setEditingLineup(false);
+                  }}
+                  onCancel={() => setEditingLineup(false)}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </PageTransition>
   );
 }
@@ -306,6 +341,7 @@ function SquadCompleteCard({
   squad,
   captainId,
   onSetCaptain,
+  onRearrange,
 }: {
   onSimulate: () => void;
   ctaLabel: string;
@@ -313,6 +349,7 @@ function SquadCompleteCard({
   squad: SquadSlot[];
   captainId: number | null;
   onSetCaptain: (playerId: number) => void;
+  onRearrange: () => void;
 }) {
   const ordered = squad
     .filter((s) => s.position < XI_SIZE)
@@ -367,9 +404,14 @@ function SquadCompleteCard({
         </p>
       </div>
 
-      <button onClick={onSimulate} className="btn-primary mx-auto mt-6 px-10 py-4 text-lg">
-        {ctaLabel}
-      </button>
+      <div className="mt-6 flex flex-col items-center gap-2">
+        <button onClick={onSimulate} className="btn-primary px-10 py-4 text-lg">
+          {ctaLabel}
+        </button>
+        <button onClick={onRearrange} className="text-xs font-600 uppercase tracking-wide text-sky-300 hover:text-sky-200">
+          ✎ Rearrange Lineup
+        </button>
+      </div>
     </motion.div>
   );
 }

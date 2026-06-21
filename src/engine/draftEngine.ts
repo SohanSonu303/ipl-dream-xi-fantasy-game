@@ -2,6 +2,7 @@ import type { Player, PlayersDataset, TeamCode } from '@/types';
 import { TEAM_CODES } from '@/data/teams';
 import { pick, shuffle } from '@/utils';
 import { rollPrimeEdition } from '@/data/primeEditions';
+import { applyDevelopment } from '@/data/profile';
 import dataset from '@/data/players.json';
 
 const DATA = dataset as PlayersDataset;
@@ -56,20 +57,23 @@ export function drawTeam(previous: TeamCode | null, draftedIds: Set<number>): Te
  * nearly exhausted.
  *
  * Each revealed card is run through the prime-edition roll, so a marquee name
- * can occasionally surface as a boosted RARE/EPIC/LEGENDARY pull. Prime rolls
- * are disabled in versus mode: a shared XI is reconstructed from ids alone, so
- * a boosted card couldn't reproduce identically on a friend's device — versus
- * stays a pure, reproducible draft-skill contest.
+ * can occasionally surface as a boosted RARE/EPIC/LEGENDARY pull, and through
+ * the career-growth boost so your developed prospects show their improved
+ * ratings. Both are disabled in versus mode (a shared XI is rebuilt from ids,
+ * so it must reproduce identically); development is also disabled in the Daily
+ * Challenge so it stays the same puzzle for everyone.
  */
 export function buildOffer(
   team: TeamCode,
   draftedIds: Set<number>,
   size: number = OFFER_SIZE,
   allowPrime: boolean = true,
+  develop: boolean = true,
 ): Player[] {
   const available = playersForTeam(team).filter((p) => !draftedIds.has(p.id));
   const pack = shuffle(available).slice(0, size);
-  return allowPrime ? pack.map(rollPrimeEdition) : pack;
+  const grown = develop ? pack.map(applyDevelopment) : pack;
+  return allowPrime ? grown.map(rollPrimeEdition) : grown;
 }
 
 /** Players in the starting XI (batting-order slots 0..10). */

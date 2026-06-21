@@ -51,6 +51,61 @@ export function getCountry(playerId: number): Country | null {
   return COUNTRY_BY_ID[playerId] ?? null;
 }
 
+// --- Batting hand -----------------------------------------------------------
+// Used to orient the playable final over correctly: a left-hander's field and
+// scoring areas are the mirror image of a right-hander's. Everyone defaults to
+// right-handed; the set below are the dataset's notable left-handers.
+
+export type BatsHand = 'L' | 'R';
+
+const BATS_LEFT = new Set<number>([
+  6, 7, 10, 12, 14, 16, 21, 22, 25, 29, 31, 32, 44, 46, 49, 57, 59, 62, 90,
+  102, 103, 129, 134,
+]);
+
+export function getBatsHand(playerId: number): BatsHand {
+  return BATS_LEFT.has(playerId) ? 'L' : 'R';
+}
+
+// --- Young prospects (career mode) ------------------------------------------
+// Uncapped/young talents who can grow when you field them. The value is their
+// *potential* — the maximum overall-rating points they can gain over a career.
+
+const PROSPECTS: Record<number, number> = {
+  4: 8, // Shubman Gill
+  7: 12, // Yashasvi Jaiswal
+  22: 12, // Sai Sudharsan
+  31: 10, // Abhishek Sharma
+  44: 12, // Tilak Varma
+  45: 8, // Riyan Parag
+  48: 10, // Mayank Yadav
+  55: 10, // Tristan Stubbs
+  56: 10, // Nitish Kumar Reddy
+  69: 8, // Dhruv Jurel
+  74: 8, // Ayush Badoni
+  81: 12, // Dewald Brevis
+  86: 8, // Abishek Porel
+  94: 10, // Angkrish Raghuvanshi
+  95: 10, // Sameer Rizvi
+  97: 8, // Suyash Sharma
+  98: 16, // Vaibhav Sooryavanshi (teen prodigy)
+  99: 8, // Vipraj Nigam
+  105: 8, // Naman Dhir
+  107: 8, // Robin Minz
+  124: 8, // Aryan Juyal
+  134: 10, // Priyansh Arya
+  140: 8, // Kumar Kushagra
+};
+
+/** A young prospect's growth ceiling (0 = not a prospect). */
+export function getPotential(playerId: number): number {
+  return PROSPECTS[playerId] ?? 0;
+}
+
+export function isProspect(playerId: number): boolean {
+  return playerId in PROSPECTS;
+}
+
 // --- Signature traits -------------------------------------------------------
 // Each trait grants a conditional bonus the (scalar) match engine can evaluate:
 //   flat       — always-on team performance bonus (power points)

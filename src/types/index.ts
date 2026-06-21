@@ -40,6 +40,8 @@ export interface Player {
   editionTitle?: string;
   /** The player's normal overall rating, before the prime boost. */
   baseOverall?: number;
+  /** Career-mode growth applied to a young prospect you've developed (OVR pts). */
+  devBoost?: number;
 }
 
 export interface PlayersDataset {
@@ -163,7 +165,7 @@ export interface SeasonResult {
 export type GamePhase = 'home' | 'draft' | 'simulation' | 'results';
 
 /**
- * Free play (fresh randomness), the reproducible Daily Challenge, or a
- * head-to-head friend battle against a shared XI.
+ * Free play (fresh randomness), the reproducible Daily Challenge, a head-to-head
+ * friend battle against a shared XI, or a budget Auction draft.
  */
-export type GameMode = 'free' | 'daily' | 'versus';
+export type GameMode = 'free' | 'daily' | 'versus' | 'auction';

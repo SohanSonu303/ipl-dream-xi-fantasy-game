@@ -129,11 +129,20 @@ const CURATED: Record<number, CuratedEdition[]> = {
     { rarity: 'EPIC', title: 'Yorker Machine', chance: 0.12, override: { bowlingRating: 99, overallRating: 97, fantasyWeight: 0.97 } },
   ],
   // Rashid Khan — mystery-spin masterclass.
-  1: [{ rarity: 'EPIC', title: 'Mystery Master', chance: 0.13, override: { bowlingRating: 99, overallRating: 98, fantasyWeight: 0.98 } }],
+  1: [
+    { rarity: 'LEGENDARY', title: 'Spin Sorcerer', chance: 0.05, override: { bowlingRating: 99, overallRating: 99, fantasyWeight: 0.99 } },
+    { rarity: 'EPIC', title: 'Mystery Master', chance: 0.12, override: { bowlingRating: 99, overallRating: 98, fantasyWeight: 0.98 } },
+  ],
   // Suryakumar Yadav — 360° peak.
-  3: [{ rarity: 'EPIC', title: '360° Mode', chance: 0.13, override: { battingRating: 99, overallRating: 97, fantasyWeight: 0.97 } }],
+  3: [
+    { rarity: 'LEGENDARY', title: "SKY's the Limit", chance: 0.05, override: { battingRating: 99, overallRating: 98, fantasyWeight: 0.98 } },
+    { rarity: 'EPIC', title: '360° Mode', chance: 0.12, override: { battingRating: 99, overallRating: 97, fantasyWeight: 0.97 } },
+  ],
   // Sunil Narine — the 2024 title-run opener.
-  12: [{ rarity: 'EPIC', title: "Title Run '24", chance: 0.12, override: { battingRating: 90, bowlingRating: 96, overallRating: 95, fantasyWeight: 0.95 } }],
+  12: [
+    { rarity: 'LEGENDARY', title: "Title Run '24", chance: 0.05, override: { battingRating: 92, bowlingRating: 97, overallRating: 97, fantasyWeight: 0.97 } },
+    { rarity: 'EPIC', title: 'Mystery Spin', chance: 0.12, override: { battingRating: 90, bowlingRating: 96, overallRating: 95, fantasyWeight: 0.95 } },
+  ],
   // Ravindra Jadeja — Sir Jadeja all-round peak.
   16: [{ rarity: 'EPIC', title: 'Sir Jadeja', chance: 0.12, override: { battingRating: 85, bowlingRating: 94, overallRating: 94, fantasyWeight: 0.94 } }],
   // Hardik Pandya — 2024 champion captain.
@@ -141,11 +150,17 @@ const CURATED: Record<number, CuratedEdition[]> = {
   // Jofra Archer — the Super Over hero.
   26: [{ rarity: 'LEGENDARY', title: 'Super Over', chance: 0.05, override: { bowlingRating: 98, overallRating: 96, fantasyWeight: 0.96 } }],
   21: [{ rarity: 'EPIC', title: 'Fearless', chance: 0.12, override: { battingRating: 96, overallRating: 95, fantasyWeight: 0.95 } }], // Rishabh Pant
-  9: [{ rarity: 'EPIC', title: "Orange Cap '22", chance: 0.12, override: { battingRating: 98, overallRating: 96, fantasyWeight: 0.96 } }], // Jos Buttler
+  9: [
+    { rarity: 'LEGENDARY', title: "Orange Cap '22", chance: 0.05, override: { battingRating: 99, overallRating: 98, fantasyWeight: 0.98 } },
+    { rarity: 'EPIC', title: 'Explosive Opener', chance: 0.12, override: { battingRating: 98, overallRating: 96, fantasyWeight: 0.96 } },
+  ], // Jos Buttler
   6: [{ rarity: 'EPIC', title: 'Maverick', chance: 0.12, override: { battingRating: 98, overallRating: 96, fantasyWeight: 0.96 } }], // Travis Head
   19: [{ rarity: 'EPIC', title: 'Anchor', chance: 0.12, override: { battingRating: 96, overallRating: 94, fantasyWeight: 0.94 } }], // KL Rahul
   // New marquee additions.
-  125: [{ rarity: 'EPIC', title: 'Dre Russ', chance: 0.12, override: { battingRating: 90, bowlingRating: 84, overallRating: 90, fantasyWeight: 0.9 } }], // Andre Russell
+  125: [
+    { rarity: 'LEGENDARY', title: "Carnage '19", chance: 0.05, override: { battingRating: 93, bowlingRating: 85, overallRating: 94, fantasyWeight: 0.94 } },
+    { rarity: 'EPIC', title: 'Dre Russ', chance: 0.12, override: { battingRating: 90, bowlingRating: 84, overallRating: 90, fantasyWeight: 0.9 } },
+  ], // Andre Russell
   133: [{ rarity: 'EPIC', title: 'Big Show', chance: 0.12, override: { battingRating: 92, bowlingRating: 74, overallRating: 91, fantasyWeight: 0.91 } }], // Glenn Maxwell
   117: [{ rarity: 'EPIC', title: 'Mystery Spin', chance: 0.12, override: { bowlingRating: 92, overallRating: 90, fantasyWeight: 0.9 } }], // Wanindu Hasaranga
   129: [{ rarity: 'EPIC', title: 'Captain Faf', chance: 0.12, override: { battingRating: 92, overallRating: 90, fantasyWeight: 0.9 } }], // Faf du Plessis
@@ -222,6 +237,17 @@ function applyGeneric(player: Player, rarity: Rarity): Player {
     overallRating: cap(player.overallRating + stat),
     fantasyWeight: round(Math.min(0.99, player.fantasyWeight + fantasy), 2),
   };
+}
+
+/**
+ * Force a player to a specific rarity — used by pack openings. Uses the curated
+ * edition for that tier if one exists (e.g. a Legendary Kohli is "Vintage '16"),
+ * otherwise stamps a generic boosted edition.
+ */
+export function makeEdition(player: Player, rarity: Rarity): Player {
+  if (player.rarity) return player;
+  const curated = CURATED[player.id]?.find((e) => e.rarity === rarity);
+  return curated ? applyEdition(player, curated) : applyGeneric(player, rarity);
 }
 
 /**
