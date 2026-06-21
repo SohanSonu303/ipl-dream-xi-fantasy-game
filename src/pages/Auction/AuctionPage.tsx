@@ -12,7 +12,7 @@ import {
   buildLots,
   finalPrice,
 } from '@/engine';
-import { collectCards, getCoins } from '@/data/profile';
+import { getCoins } from '@/data/profile';
 import { PlayerCard } from '@/components/Shared/PlayerCard';
 import { PageTransition, Brand, SectionLabel } from '@/components/Shared/ui';
 import { ROLE_SHORT } from '@/data/teams';
@@ -106,9 +106,6 @@ export function AuctionPage() {
   // the squad through the random rolls.
   const proceedToDraft = (signed: Signing[]) => {
     const players = signed.slice(0, AUCTION_SIGN_LIMIT).map((s) => s.player);
-    // Players you sign also enter your Collection — so they show up as ready-made
-    // headliners the next time you start a draft.
-    collectCards(players);
     startAuctionDraft(players, teamName);
     navigate('/draft');
   };

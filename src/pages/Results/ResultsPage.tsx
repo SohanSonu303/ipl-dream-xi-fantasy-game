@@ -6,7 +6,7 @@ import { SEASON_LABEL, USER_TEAM_ID } from '@/engine';
 import { OUTCOME_META } from '@/data/outcomes';
 import { currentStreak, dailyNumber } from '@/data/daily';
 import { getTrait } from '@/data/playerMeta';
-import { type DevGain, addCoins, collectCards, developFromSquad, recordGamePlayed, seasonReward } from '@/data/profile';
+import { type DevGain, addCoins, developFromSquad, recordGamePlayed, seasonReward } from '@/data/profile';
 import { ordinal } from '@/utils';
 import { PlayerCard } from '@/components/Shared/PlayerCard';
 import { LeagueTable } from '@/components/Simulation/LeagueTable';
@@ -40,7 +40,6 @@ export function ResultsPage() {
     const won = seasonResult.userOutcome === 'CHAMPION';
     const breakdown = seasonReward(seasonResult.userOutcome, st.won, st.position, mode === 'daily');
     addCoins(breakdown.total);
-    collectCards(squad.map((s) => s.player));
     // Prospects who played this season grow toward their potential.
     const gains = developFromSquad(squad.filter((s) => s.position < 11).map((s) => s.player.id));
     recordGamePlayed(won);
