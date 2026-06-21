@@ -48,6 +48,19 @@ function xiOrdered(squad: SquadSlot[]): Player[] {
     .map((s) => s.player);
 }
 
+/**
+ * The XI indexed by true batting position (length 11, holes for unfilled
+ * slots). Used for positional analysis so partial squads are judged by their
+ * real slot rather than a compacted one.
+ */
+function xiByPosition(squad: SquadSlot[]): (Player | undefined)[] {
+  const arr: (Player | undefined)[] = new Array(XI_SIZE).fill(undefined);
+  for (const s of squad) {
+    if (s.position < XI_SIZE) arr[s.position] = s.player;
+  }
+  return arr;
+}
+
 /** Bench players (slots 11..12) in order. */
 function benchOf(squad: SquadSlot[]): Player[] {
   return squad
@@ -185,6 +198,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (currentTeam || isRolling || squad.length >= SQUAD_SIZE) return;
     const drafted = new Set(squad.map((s) => s.player.id));
     const next = drawTeam(get().lastTeam, drafted);
+    const allowPrime = get().mode !== 'versus';
     set({ isRolling: true });
     // The UI animation drives the reveal; settle shortly after.
     window.setTimeout(() => {
@@ -192,7 +206,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         currentTeam: next,
         lastTeam: next,
         isRolling: false,
-        offer: buildOffer(next, drafted),
+        offer: buildOffer(next, drafted, undefined, allowPrime),
       });
     }, 900);
   },
@@ -202,6 +216,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!currentTeam || isRolling || rerollsUsed >= MAX_REROLLS) return;
     const drafted = new Set(squad.map((s) => s.player.id));
     const next = drawTeam(currentTeam, drafted);
+    const allowPrime = get().mode !== 'versus';
     set({ isRolling: true, pendingPlayer: null, currentTeam: null, offer: [] });
     window.setTimeout(() => {
       set({
@@ -209,7 +224,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         lastTeam: next,
         rerollsUsed: rerollsUsed + 1,
         isRolling: false,
-        offer: buildOffer(next, drafted),
+        offer: buildOffer(next, drafted, undefined, allowPrime),
       });
     }, 900);
   },
@@ -410,7 +425,7 @@ export function useChemistry(): Chemistry {
 /** Live batting-order fit analysis for the starting XI. */
 export function usePositions(): PositionAnalysis {
   const squad = useGameStore((s) => s.squad);
-  return analyzePositions(xiOrdered(squad));
+  return analyzePositions(xiByPosition(squad));
 }
 
 /** Bench players (for the Impact Player picker). */

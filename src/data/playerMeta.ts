@@ -36,6 +36,15 @@ const COUNTRY_BY_ID: Record<number, Country> = {
   86: 'India', 87: 'South Africa', 88: 'India', 89: 'India', 90: 'India',
   91: 'South Africa', 92: 'India', 93: 'New Zealand', 94: 'India', 95: 'India',
   96: 'India', 97: 'India', 98: 'India', 99: 'India', 100: 'India',
+  // Depth additions (ids 101–140).
+  101: 'India', 102: 'New Zealand', 103: 'England', 104: 'Sri Lanka', 105: 'India',
+  106: 'England', 107: 'India', 108: 'India', 109: 'India', 110: 'South Africa',
+  111: 'West Indies', 112: 'India', 113: 'Australia', 114: 'Sri Lanka', 115: 'India',
+  116: 'India', 117: 'Sri Lanka', 118: 'Sri Lanka', 119: 'South Africa', 120: 'India',
+  121: 'South Africa', 122: 'India', 123: 'India', 124: 'India', 125: 'West Indies',
+  126: 'India', 127: 'South Africa', 128: 'Afghanistan', 129: 'South Africa', 130: 'India',
+  131: 'India', 132: 'Sri Lanka', 133: 'Australia', 134: 'India', 135: 'India',
+  136: 'Australia', 137: 'India', 138: 'West Indies', 139: 'India', 140: 'India',
 };
 
 export function getCountry(playerId: number): Country | null {
@@ -141,6 +150,10 @@ const TRAIT_BY_ID: Record<number, TraitKey> = {
   14: 'PACE_SPEARHEAD', 18: 'PACE_SPEARHEAD', 13: 'PACE_SPEARHEAD', 26: 'PACE_SPEARHEAD', 41: 'PACE_SPEARHEAD',
   // Captain cool / all-round influence
   15: 'CAPTAIN_COOL', 16: 'CAPTAIN_COOL', 3: 'CAPTAIN_COOL', 4: 'CAPTAIN_COOL',
+  // Depth additions (ids 101–140).
+  101: 'SPIN_WIZARD', 113: 'SPIN_WIZARD', 117: 'SPIN_WIZARD',
+  127: 'PACE_SPEARHEAD', 104: 'DEATH_OVERS_KING',
+  125: 'FINISHER', 133: 'FINISHER', 129: 'CAPTAIN_COOL',
 };
 
 export function getTrait(playerId: number): TraitMeta | null {

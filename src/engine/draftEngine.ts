@@ -1,6 +1,7 @@
 import type { Player, PlayersDataset, TeamCode } from '@/types';
 import { TEAM_CODES } from '@/data/teams';
 import { pick, shuffle } from '@/utils';
+import { rollPrimeEdition } from '@/data/primeEditions';
 import dataset from '@/data/players.json';
 
 const DATA = dataset as PlayersDataset;
@@ -53,14 +54,22 @@ export function drawTeam(previous: TeamCode | null, draftedIds: Set<number>): Te
  * offer — this is the deliberate randomness that keeps the user from cherry-
  * picking an overpowered XI. Returns fewer than OFFER_SIZE only if the team is
  * nearly exhausted.
+ *
+ * Each revealed card is run through the prime-edition roll, so a marquee name
+ * can occasionally surface as a boosted RARE/EPIC/LEGENDARY pull. Prime rolls
+ * are disabled in versus mode: a shared XI is reconstructed from ids alone, so
+ * a boosted card couldn't reproduce identically on a friend's device — versus
+ * stays a pure, reproducible draft-skill contest.
  */
 export function buildOffer(
   team: TeamCode,
   draftedIds: Set<number>,
   size: number = OFFER_SIZE,
+  allowPrime: boolean = true,
 ): Player[] {
   const available = playersForTeam(team).filter((p) => !draftedIds.has(p.id));
-  return shuffle(available).slice(0, size);
+  const pack = shuffle(available).slice(0, size);
+  return allowPrime ? pack.map(rollPrimeEdition) : pack;
 }
 
 /** Players in the starting XI (batting-order slots 0..10). */

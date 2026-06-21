@@ -111,10 +111,10 @@ export function StrengthPanel({ strength, roleBalance, composition, chemistry, p
         )}
       </div>
 
-      {/* Batting-order fit */}
+      {/* Positional balance — right type in the right slot */}
       <div className="mt-4 border-t border-white/10 pt-3">
         <div className="mb-2 flex items-center justify-between">
-          <span className="stat-label">Batting Order</span>
+          <span className="stat-label">Positional Balance</span>
           {positions.modifier > 0 ? (
             <span className="pill bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300">
               +{positions.modifier} power
@@ -127,10 +127,28 @@ export function StrengthPanel({ strength, roleBalance, composition, chemistry, p
             <span className="pill bg-white/5 px-2 py-0.5 text-[10px] text-slate-400">neutral</span>
           )}
         </div>
-        <p className="text-[11px] leading-relaxed text-slate-500">
+        <div className="space-y-1.5">
+          {positions.checks.map((c) => (
+            <div key={c.key} className="flex items-center gap-2 text-xs">
+              <span
+                className={cn(
+                  'grid h-4 w-4 shrink-0 place-items-center rounded-full text-[9px]',
+                  c.ok ? 'bg-emerald-500/25 text-emerald-300' : 'bg-red-500/20 text-red-300',
+                )}
+              >
+                {c.ok ? '✓' : '!'}
+              </span>
+              <span className="flex-1 text-slate-300">{c.label}</span>
+              <span className={cn('truncate text-right text-[10px]', c.ok ? 'text-slate-500' : 'text-red-300')}>
+                {c.ok ? 'ok' : `${c.misplaced} off`}
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
           {misfits > 0
-            ? `${misfits} player${misfits === 1 ? '' : 's'} out of position — bowlers up top or batters at the death cost power. Order matters.`
-            : 'Well-ordered XI. Put finishers at the death and your spinner/pacers at 9–11 for trait bonuses.'}
+            ? `${misfits} player${misfits === 1 ? '' : 's'} out of position — a complete side needs the right type in every slot, not just the right counts.`
+            : 'Balanced shape. Finishers at the death, specialist bowlers at 9–11 for trait bonuses.'}
         </p>
       </div>
 

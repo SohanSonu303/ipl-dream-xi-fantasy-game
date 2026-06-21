@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import type { Player } from '@/types';
 import { TEAM_META, ROLE_LABELS, ROLE_SHORT } from '@/data/teams';
+import { RARITY_META } from '@/data/primeEditions';
 import { cn, initials } from '@/utils';
 
 interface PlayerCardProps {
@@ -29,6 +30,8 @@ export function PlayerCard({
 }: PlayerCardProps) {
   const meta = TEAM_META[player.team];
   const interactive = Boolean(onSelect) && !disabled;
+  const rarity = player.rarity ? RARITY_META[player.rarity] : null;
+  const boost = rarity && player.baseOverall != null ? player.overallRating - player.baseOverall : 0;
 
   return (
     <motion.button
@@ -44,16 +47,58 @@ export function PlayerCard({
       className={cn(
         'group relative flex w-full flex-col overflow-hidden rounded-2xl border text-left transition-colors',
         'bg-gradient-to-b from-pitch-800 to-pitch-900',
-        selected ? 'border-gold ring-2 ring-gold/60' : 'border-white/10',
+        selected ? 'border-gold ring-2 ring-gold/60' : rarity ? 'border-transparent' : 'border-white/10',
         interactive ? 'cursor-pointer hover:border-white/25' : 'cursor-default',
         disabled && 'opacity-50 saturate-50',
       )}
+      style={
+        rarity && !selected
+          ? { borderColor: rarity.color, boxShadow: `0 0 0 1px ${rarity.color}, 0 0 18px ${rarity.glow}` }
+          : undefined
+      }
     >
-      {/* Accent header strip */}
+      {/* Rarity card wash + animated sheen (epic/legendary), painted behind content */}
+      {rarity && (
+        <>
+          <div
+            className="pointer-events-none absolute inset-0 -z-10"
+            style={{ background: `linear-gradient(160deg, ${rarity.wash}, transparent 60%)` }}
+          />
+          {rarity.sheen && (
+            <motion.div
+              className="pointer-events-none absolute inset-0 -z-10"
+              initial={{ backgroundPositionX: '-150%' }}
+              animate={{ backgroundPositionX: '150%' }}
+              transition={{ duration: player.rarity === 'LEGENDARY' ? 2.2 : 3, repeat: Infinity, ease: 'linear' }}
+              style={{
+                background: `linear-gradient(115deg, transparent 38%, ${rarity.color}55 50%, transparent 62%)`,
+                backgroundSize: '220% 100%',
+              }}
+            />
+          )}
+        </>
+      )}
+
+      {/* Accent header strip — rarity colour takes over for a prime edition */}
       <div
         className="relative h-1 w-full sm:h-1.5"
-        style={{ background: `linear-gradient(90deg, ${meta.accent}, ${meta.accent2})` }}
+        style={{
+          background: rarity
+            ? `linear-gradient(90deg, ${rarity.color}, ${rarity.glow})`
+            : `linear-gradient(90deg, ${meta.accent}, ${meta.accent2})`,
+        }}
       />
+
+      {/* Rarity ribbon */}
+      {rarity && (
+        <div
+          className="flex items-center justify-between gap-1 px-2 py-0.5 text-[8px] font-700 uppercase tracking-wider sm:text-[9px]"
+          style={{ background: `${rarity.color}26`, color: rarity.color }}
+        >
+          <span className="truncate">{rarity.emblem} {player.editionTitle}</span>
+          <span className="shrink-0">{rarity.label}</span>
+        </div>
+      )}
 
       {captain && (
         <span
@@ -78,11 +123,15 @@ export function PlayerCard({
         <div className="flex flex-col items-center">
           <span
             className="grid h-8 w-8 place-items-center rounded-lg font-display text-sm font-700 sm:h-11 sm:w-11 sm:rounded-xl sm:text-lg"
-            style={{ background: `${meta.accent}1a`, color: meta.accent, boxShadow: `inset 0 0 0 1px ${meta.accent}55` }}
+            style={
+              rarity
+                ? { background: `${rarity.color}1f`, color: rarity.color, boxShadow: `inset 0 0 0 1px ${rarity.color}77` }
+                : { background: `${meta.accent}1a`, color: meta.accent, boxShadow: `inset 0 0 0 1px ${meta.accent}55` }
+            }
           >
             {player.overallRating}
           </span>
-          <span className="stat-label mt-0.5">OVR</span>
+          <span className="stat-label mt-0.5">{boost > 0 ? `OVR +${boost}` : 'OVR'}</span>
         </div>
       </div>
 
@@ -90,13 +139,26 @@ export function PlayerCard({
       <div className="relative mx-2 mt-1.5 grid place-items-center overflow-hidden rounded-xl py-2.5 sm:mx-3 sm:mt-2 sm:py-4">
         <div
           className="absolute inset-0 opacity-90"
-          style={{ background: `radial-gradient(circle at 50% 35%, ${meta.accent}33, transparent 70%)` }}
+          style={{ background: `radial-gradient(circle at 50% 35%, ${(rarity ? rarity.color : meta.accent)}33, transparent 70%)` }}
         />
+        {rarity && (
+          <span
+            className="pointer-events-none absolute right-1.5 top-1 select-none text-2xl opacity-20 sm:text-3xl"
+            style={{ color: rarity.color }}
+            aria-hidden
+          >
+            {rarity.emblem}
+          </span>
+        )}
         <div
-          className="relative grid h-11 w-11 place-items-center rounded-full font-display text-lg font-700 ring-2 ring-white/15 sm:h-16 sm:w-16 sm:text-2xl"
+          className={cn(
+            'relative grid h-11 w-11 place-items-center rounded-full font-display text-lg font-700 sm:h-16 sm:w-16 sm:text-2xl',
+            !rarity && 'ring-2 ring-white/15',
+          )}
           style={{
             background: `linear-gradient(160deg, ${meta.accent}, ${meta.accent2})`,
             color: meta.ink,
+            boxShadow: rarity ? `0 0 0 2px ${rarity.color}, 0 0 14px ${rarity.glow}` : undefined,
           }}
         >
           {initials(player.name)}

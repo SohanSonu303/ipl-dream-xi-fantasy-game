@@ -1,5 +1,6 @@
 import type { Player, SeasonTeam } from '@/types';
 import { getTrait } from '@/data/playerMeta';
+import { getMatchup } from './matchupEngine';
 import { clamp, random, randomFloat, round } from '@/utils';
 
 // ---------------------------------------------------------------------------
@@ -80,6 +81,10 @@ export function resolveBall(bowler: Player, batter: Player, intent: Intent): Bal
   const ballType = rollBallType(bowler);
   const batSkill = batter.battingRating / 100; // 0..1
   const bowlSkill = bowler.bowlingRating / 100;
+  // Head-to-head record: a bowler with the wood over this batter takes more
+  // wickets and concedes fewer boundaries; a favourable match-up for the batter
+  // does the opposite. Positive edge => bowler advantage.
+  const edge = getMatchup(bowler, batter).edge;
 
   const mk = (runs: number, wicket: boolean, text: string): BallOutcome => ({
     runs,
@@ -96,7 +101,7 @@ export function resolveBall(bowler: Player, batter: Player, intent: Intent): Bal
 
   if (intent === 'PUSH') {
     const baseW = ballType === 'YORKER' ? 0.09 : ballType === 'GOOD' ? 0.045 : 0.02;
-    if (random() < clamp(baseW - batSkill * 0.03, 0.005, 0.12)) {
+    if (random() < clamp(baseW - batSkill * 0.03 + edge * 0.04, 0.004, 0.14)) {
       return mk(0, true, 'Squeezed out — and a wicket falls!');
     }
     if (ballType === 'LOOSE') return random() < 0.4 + batSkill * 0.3 ? mk(2, false, 'Worked into the gap for two.') : mk(1, false, 'Pushed for a single.');
@@ -106,7 +111,7 @@ export function resolveBall(bowler: Player, batter: Player, intent: Intent): Bal
 
   // BIG — go for the boundary. Death bowling is hard to get away cleanly.
   const baseW = ballType === 'YORKER' ? 0.62 : ballType === 'GOOD' ? 0.4 : 0.18;
-  const wicketP = clamp(baseW * (1.35 - batSkill) * (0.85 + bowlSkill * 0.5), 0.05, 0.95);
+  const wicketP = clamp(baseW * (1.35 - batSkill) * (0.85 + bowlSkill * 0.5) * (1 + edge * 0.45), 0.05, 0.96);
   if (random() < wicketP) {
     const how =
       ballType === 'YORKER'
@@ -114,8 +119,12 @@ export function resolveBall(bowler: Player, batter: Player, intent: Intent): Bal
         : 'Goes big but picks out the fielder — OUT!';
     return mk(0, true, how);
   }
-  // Survived the swing — how well did it connect?
-  const sixP = clamp((ballType === 'LOOSE' ? 0.62 : ballType === 'GOOD' ? 0.42 : 0.24) * (0.55 + batSkill * 0.7), 0.08, 0.85);
+  // Survived the swing — how well did it connect? (a bowler edge dulls the bat)
+  const sixP = clamp(
+    (ballType === 'LOOSE' ? 0.62 : ballType === 'GOOD' ? 0.42 : 0.24) * (0.55 + batSkill * 0.7) * (1 - edge * 0.35),
+    0.06,
+    0.85,
+  );
   if (random() < sixP) return mk(6, false, 'SIX! Launched into the crowd!');
   if (random() < 0.5) return mk(4, false, 'FOUR! Found the gap.');
   return random() < 0.6 ? mk(2, false, 'Mis-timed but two taken.') : mk(1, false, 'Inside edge, single.');

@@ -6,6 +6,7 @@ import type {
   TeamCode,
 } from '@/types';
 import { TEAM_CODES, TEAM_META } from '@/data/teams';
+import { rollPrimeEdition } from '@/data/primeEditions';
 import { playersForTeam } from './draftEngine';
 import { computeStrength } from './teamStrengthEngine';
 import { analyzeChemistry } from './chemistryEngine';
@@ -64,10 +65,16 @@ export const LEAGUE_MATCHES_PER_TEAM = 18;
 /** The user's drafted XI joins the ten franchises -> an 11-team league. */
 export const USER_TEAM_ID = 'USER_DREAM_XI';
 
-/** Build the ten AI franchises from their real dataset squads. */
+/**
+ * Build the ten AI franchises from their real dataset squads. Each squad is run
+ * through the prime-edition roll too, so the opposition fields its own
+ * boosted IN_FORM/RARE/EPIC/LEGENDARY cards — the same luck the user's draft
+ * enjoys — keeping the league balanced. Rolls draw from the (seeded-in-daily)
+ * RNG, so a franchise's primes are reproducible for a given run.
+ */
 export function buildFranchiseTeams(): SeasonTeam[] {
   return TEAM_CODES.map((code: TeamCode) => {
-    const squad = playersForTeam(code);
+    const squad = playersForTeam(code).map(rollPrimeEdition);
     const base = computeStrength(squad);
     return {
       id: `FR_${code}`,

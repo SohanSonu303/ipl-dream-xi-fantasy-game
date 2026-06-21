@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { SeasonTeam } from '@/types';
+import type { Rarity, SeasonTeam } from '@/types';
 import {
   type BallOutcome,
   type Intent,
+  getMatchup,
   resolveBall,
   setupFinalOver,
 } from '@/engine';
 import { getTrait } from '@/data/playerMeta';
+import { RARITY_META } from '@/data/primeEditions';
 import { Confetti } from './Confetti';
 import { cn } from '@/utils';
 
@@ -41,6 +43,10 @@ export function PlayableFinalOver({ userTeam, oppTeam, onComplete }: PlayableFin
   const striker = batters[Math.min(batterIndex, batters.length - 1)];
   const bowlerTrait = getTrait(bowler.id);
   const strikerTrait = getTrait(striker?.id ?? -1);
+  const matchup = useMemo(
+    () => (striker ? getMatchup(bowler, striker) : null),
+    [bowler, striker],
+  );
   const userWon = runs >= target;
 
   const play = (intent: Intent) => {
@@ -102,10 +108,34 @@ export function PlayableFinalOver({ userTeam, oppTeam, onComplete }: PlayableFin
 
       {/* Bowler vs batter */}
       <div className="mt-5 flex items-stretch justify-center gap-3 text-left">
-        <FaceCard label="Bowling" name={bowler.name} rating={bowler.bowlingRating} ratingLabel="BOWL" trait={bowlerTrait?.label} tone="red" />
+        <FaceCard label="Bowling" name={bowler.name} rating={bowler.bowlingRating} ratingLabel="BOWL" trait={bowlerTrait?.label} tone="red" rarity={bowler.rarity} editionTitle={bowler.editionTitle} />
         <div className="grid place-items-center text-xs font-700 uppercase text-slate-500">vs</div>
-        <FaceCard label="On Strike" name={striker?.name ?? '—'} rating={striker?.battingRating ?? 0} ratingLabel="BAT" trait={strikerTrait?.label} tone="gold" />
+        <FaceCard label="On Strike" name={striker?.name ?? '—'} rating={striker?.battingRating ?? 0} ratingLabel="BAT" trait={strikerTrait?.label} tone="gold" rarity={striker?.rarity} editionTitle={striker?.editionTitle} />
       </div>
+
+      {/* Head-to-head record */}
+      {matchup && !done && (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={striker?.id}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2 }}
+            className={cn(
+              'mt-3 flex items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] leading-snug',
+              matchup.favours === 'BOWLER'
+                ? 'border-red-400/25 bg-red-500/[0.07] text-red-200'
+                : matchup.favours === 'BATTER'
+                  ? 'border-emerald-400/25 bg-emerald-500/[0.07] text-emerald-200'
+                  : 'border-white/10 bg-white/5 text-slate-300',
+            )}
+          >
+            <span>{matchup.favours === 'BOWLER' ? '🎯' : matchup.favours === 'BATTER' ? '🔥' : '⚖️'}</span>
+            <span>{matchup.note}</span>
+          </motion.div>
+        </AnimatePresence>
+      )}
 
       {/* Ball strip */}
       <div className="mt-5 flex items-center justify-center gap-1.5 sm:gap-2">
@@ -187,6 +217,8 @@ function FaceCard({
   ratingLabel,
   trait,
   tone,
+  rarity,
+  editionTitle,
 }: {
   label: string;
   name: string;
@@ -194,18 +226,40 @@ function FaceCard({
   ratingLabel: string;
   trait?: string;
   tone: 'red' | 'gold';
+  rarity?: Rarity;
+  editionTitle?: string;
 }) {
+  const rm = rarity ? RARITY_META[rarity] : null;
   return (
     <div
       className={cn(
-        'flex-1 rounded-xl border p-2.5',
-        tone === 'red' ? 'border-red-400/25 bg-red-500/[0.07]' : 'border-gold/25 bg-gold/[0.07]',
+        'relative flex-1 overflow-hidden rounded-xl border p-2.5',
+        rm ? 'border-transparent' : tone === 'red' ? 'border-red-400/25 bg-red-500/[0.07]' : 'border-gold/25 bg-gold/[0.07]',
       )}
+      style={
+        rm
+          ? { borderColor: rm.color, boxShadow: `0 0 0 1px ${rm.color}, 0 0 14px ${rm.glow}`, background: `linear-gradient(160deg, ${rm.wash}, transparent 70%)` }
+          : undefined
+      }
     >
+      {rm && (
+        <span
+          className="absolute right-1.5 top-1.5 text-xs"
+          style={{ color: rm.color }}
+          title={`${rm.label} · ${editionTitle}`}
+        >
+          {rm.emblem}
+        </span>
+      )}
       <div className="stat-label">{label}</div>
       <div className="mt-0.5 truncate text-sm font-700">{name}</div>
+      {rm && editionTitle && (
+        <div className="truncate text-[9px] font-700 uppercase tracking-wide" style={{ color: rm.color }}>
+          {editionTitle}
+        </div>
+      )}
       <div className="mt-1 flex items-center gap-1.5">
-        <span className="font-display text-lg font-700" style={{ color: tone === 'red' ? '#fb7185' : '#f5c542' }}>
+        <span className="font-display text-lg font-700" style={{ color: rm ? rm.color : tone === 'red' ? '#fb7185' : '#f5c542' }}>
           {rating}
         </span>
         <span className="stat-label">{ratingLabel}</span>

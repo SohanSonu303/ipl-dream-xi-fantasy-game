@@ -1,6 +1,6 @@
 {
   "season": "IPL 2026",
-  "playerCount": 100,
+  "playerCount": 140,
   "players": [
     {
       "name": "Rashid Khan",
@@ -1001,6 +1001,406 @@
       "overallRating": 76,
       "id": 100,
       "fantasyWeight": 0.76
+    },
+    {
+      "name": "Ravichandran Ashwin",
+      "team": "CSK",
+      "role": "BOWLER",
+      "battingRating": 32,
+      "bowlingRating": 87,
+      "overallRating": 85,
+      "id": 101,
+      "fantasyWeight": 0.85
+    },
+    {
+      "name": "Devon Conway",
+      "team": "CSK",
+      "role": "WICKET_KEEPER",
+      "battingRating": 87,
+      "bowlingRating": 0,
+      "overallRating": 85,
+      "id": 102,
+      "fantasyWeight": 0.85
+    },
+    {
+      "name": "Sam Curran",
+      "team": "CSK",
+      "role": "ALL_ROUNDER",
+      "battingRating": 78,
+      "bowlingRating": 80,
+      "overallRating": 83,
+      "id": 103,
+      "fantasyWeight": 0.83
+    },
+    {
+      "name": "Matheesha Pathirana",
+      "team": "CSK",
+      "role": "BOWLER",
+      "battingRating": 6,
+      "bowlingRating": 87,
+      "overallRating": 84,
+      "id": 104,
+      "fantasyWeight": 0.84
+    },
+    {
+      "name": "Naman Dhir",
+      "team": "MI",
+      "role": "ALL_ROUNDER",
+      "battingRating": 80,
+      "bowlingRating": 55,
+      "overallRating": 80,
+      "id": 105,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Reece Topley",
+      "team": "MI",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 83,
+      "overallRating": 81,
+      "id": 106,
+      "fantasyWeight": 0.81
+    },
+    {
+      "name": "Robin Minz",
+      "team": "MI",
+      "role": "WICKET_KEEPER",
+      "battingRating": 79,
+      "bowlingRating": 0,
+      "overallRating": 78,
+      "id": 107,
+      "fantasyWeight": 0.78
+    },
+    {
+      "name": "Karn Sharma",
+      "team": "MI",
+      "role": "BOWLER",
+      "battingRating": 22,
+      "bowlingRating": 80,
+      "overallRating": 78,
+      "id": 108,
+      "fantasyWeight": 0.78
+    },
+    {
+      "name": "Devdutt Padikkal",
+      "team": "RCB",
+      "role": "BATTER",
+      "battingRating": 83,
+      "bowlingRating": 5,
+      "overallRating": 82,
+      "id": 109,
+      "fantasyWeight": 0.82
+    },
+    {
+      "name": "Lungi Ngidi",
+      "team": "RCB",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 84,
+      "overallRating": 82,
+      "id": 110,
+      "fantasyWeight": 0.82
+    },
+    {
+      "name": "Romario Shepherd",
+      "team": "RCB",
+      "role": "ALL_ROUNDER",
+      "battingRating": 76,
+      "bowlingRating": 80,
+      "overallRating": 81,
+      "id": 111,
+      "fantasyWeight": 0.81
+    },
+    {
+      "name": "Mayank Agarwal",
+      "team": "RCB",
+      "role": "BATTER",
+      "battingRating": 82,
+      "bowlingRating": 5,
+      "overallRating": 80,
+      "id": 112,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Adam Zampa",
+      "team": "SRH",
+      "role": "BOWLER",
+      "battingRating": 18,
+      "bowlingRating": 86,
+      "overallRating": 84,
+      "id": 113,
+      "fantasyWeight": 0.84
+    },
+    {
+      "name": "Kamindu Mendis",
+      "team": "SRH",
+      "role": "ALL_ROUNDER",
+      "battingRating": 82,
+      "bowlingRating": 72,
+      "overallRating": 82,
+      "id": 114,
+      "fantasyWeight": 0.82
+    },
+    {
+      "name": "Abhinav Manohar",
+      "team": "SRH",
+      "role": "ALL_ROUNDER",
+      "battingRating": 80,
+      "bowlingRating": 30,
+      "overallRating": 79,
+      "id": 115,
+      "fantasyWeight": 0.79
+    },
+    {
+      "name": "Zeeshan Ansari",
+      "team": "SRH",
+      "role": "BOWLER",
+      "battingRating": 14,
+      "bowlingRating": 80,
+      "overallRating": 78,
+      "id": 116,
+      "fantasyWeight": 0.78
+    },
+    {
+      "name": "Wanindu Hasaranga",
+      "team": "RR",
+      "role": "ALL_ROUNDER",
+      "battingRating": 48,
+      "bowlingRating": 88,
+      "overallRating": 86,
+      "id": 117,
+      "fantasyWeight": 0.86
+    },
+    {
+      "name": "Maheesh Theekshana",
+      "team": "RR",
+      "role": "BOWLER",
+      "battingRating": 12,
+      "bowlingRating": 85,
+      "overallRating": 83,
+      "id": 118,
+      "fantasyWeight": 0.83
+    },
+    {
+      "name": "Kwena Maphaka",
+      "team": "RR",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 82,
+      "overallRating": 80,
+      "id": 119,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Yudhvir Singh",
+      "team": "RR",
+      "role": "ALL_ROUNDER",
+      "battingRating": 60,
+      "bowlingRating": 78,
+      "overallRating": 78,
+      "id": 120,
+      "fantasyWeight": 0.78
+    },
+    {
+      "name": "David Miller",
+      "team": "LSG",
+      "role": "BATTER",
+      "battingRating": 86,
+      "bowlingRating": 5,
+      "overallRating": 84,
+      "id": 121,
+      "fantasyWeight": 0.84
+    },
+    {
+      "name": "Shahbaz Ahmed",
+      "team": "LSG",
+      "role": "ALL_ROUNDER",
+      "battingRating": 74,
+      "bowlingRating": 78,
+      "overallRating": 80,
+      "id": 122,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Mohsin Khan",
+      "team": "LSG",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 83,
+      "overallRating": 81,
+      "id": 123,
+      "fantasyWeight": 0.81
+    },
+    {
+      "name": "Aryan Juyal",
+      "team": "LSG",
+      "role": "WICKET_KEEPER",
+      "battingRating": 78,
+      "bowlingRating": 0,
+      "overallRating": 77,
+      "id": 124,
+      "fantasyWeight": 0.77
+    },
+    {
+      "name": "Andre Russell",
+      "team": "KKR",
+      "role": "ALL_ROUNDER",
+      "battingRating": 85,
+      "bowlingRating": 80,
+      "overallRating": 86,
+      "id": 125,
+      "fantasyWeight": 0.86
+    },
+    {
+      "name": "Venkatesh Iyer",
+      "team": "KKR",
+      "role": "ALL_ROUNDER",
+      "battingRating": 85,
+      "bowlingRating": 55,
+      "overallRating": 84,
+      "id": 126,
+      "fantasyWeight": 0.84
+    },
+    {
+      "name": "Anrich Nortje",
+      "team": "KKR",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 87,
+      "overallRating": 85,
+      "id": 127,
+      "fantasyWeight": 0.85
+    },
+    {
+      "name": "Rahmanullah Gurbaz",
+      "team": "KKR",
+      "role": "WICKET_KEEPER",
+      "battingRating": 85,
+      "bowlingRating": 0,
+      "overallRating": 83,
+      "id": 128,
+      "fantasyWeight": 0.83
+    },
+    {
+      "name": "Faf du Plessis",
+      "team": "DC",
+      "role": "BATTER",
+      "battingRating": 88,
+      "bowlingRating": 5,
+      "overallRating": 86,
+      "id": 129,
+      "fantasyWeight": 0.86
+    },
+    {
+      "name": "Mukesh Kumar",
+      "team": "DC",
+      "role": "BOWLER",
+      "battingRating": 8,
+      "bowlingRating": 83,
+      "overallRating": 81,
+      "id": 130,
+      "fantasyWeight": 0.81
+    },
+    {
+      "name": "Karun Nair",
+      "team": "DC",
+      "role": "BATTER",
+      "battingRating": 84,
+      "bowlingRating": 5,
+      "overallRating": 82,
+      "id": 131,
+      "fantasyWeight": 0.82
+    },
+    {
+      "name": "Dushmantha Chameera",
+      "team": "DC",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 82,
+      "overallRating": 80,
+      "id": 132,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Glenn Maxwell",
+      "team": "PBKS",
+      "role": "ALL_ROUNDER",
+      "battingRating": 86,
+      "bowlingRating": 70,
+      "overallRating": 86,
+      "id": 133,
+      "fantasyWeight": 0.86
+    },
+    {
+      "name": "Priyansh Arya",
+      "team": "PBKS",
+      "role": "BATTER",
+      "battingRating": 83,
+      "bowlingRating": 5,
+      "overallRating": 80,
+      "id": 134,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Vijaykumar Vyshak",
+      "team": "PBKS",
+      "role": "BOWLER",
+      "battingRating": 12,
+      "bowlingRating": 82,
+      "overallRating": 80,
+      "id": 135,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Aaron Hardie",
+      "team": "PBKS",
+      "role": "ALL_ROUNDER",
+      "battingRating": 78,
+      "bowlingRating": 78,
+      "overallRating": 80,
+      "id": 136,
+      "fantasyWeight": 0.8
+    },
+    {
+      "name": "Prasidh Krishna",
+      "team": "GT",
+      "role": "BOWLER",
+      "battingRating": 10,
+      "bowlingRating": 85,
+      "overallRating": 83,
+      "id": 137,
+      "fantasyWeight": 0.83
+    },
+    {
+      "name": "Sherfane Rutherford",
+      "team": "GT",
+      "role": "BATTER",
+      "battingRating": 84,
+      "bowlingRating": 20,
+      "overallRating": 82,
+      "id": 138,
+      "fantasyWeight": 0.82
+    },
+    {
+      "name": "Mahipal Lomror",
+      "team": "GT",
+      "role": "ALL_ROUNDER",
+      "battingRating": 78,
+      "bowlingRating": 60,
+      "overallRating": 79,
+      "id": 139,
+      "fantasyWeight": 0.79
+    },
+    {
+      "name": "Kumar Kushagra",
+      "team": "GT",
+      "role": "WICKET_KEEPER",
+      "battingRating": 79,
+      "bowlingRating": 0,
+      "overallRating": 77,
+      "id": 140,
+      "fantasyWeight": 0.77
     }
   ],
   "note": "Ratings are gameplay-balanced model values based on current IPLT20 2026 squad listings and public player reputation/form; they are not official IPL ratings."

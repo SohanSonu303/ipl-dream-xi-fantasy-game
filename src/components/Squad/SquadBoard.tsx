@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import type { Player, SquadSlot } from '@/types';
 import { SQUAD_SIZE, XI_SIZE, analyzePositions } from '@/engine';
 import { TEAM_META, ROLE_SHORT } from '@/data/teams';
+import { RARITY_META } from '@/data/primeEditions';
 import { getTrait } from '@/data/playerMeta';
 import { TeamBadge } from '@/components/Shared/TeamBadge';
 import { cn, initials } from '@/utils';
@@ -31,11 +32,11 @@ export function SquadBoard({ squad, pendingPlayer, onAssign }: SquadBoardProps) 
   const byPosition = new Map(squad.map((s) => [s.position, s]));
   const assigning = Boolean(pendingPlayer);
 
-  // Per-slot batting-order fit for the placed XI players.
-  const xi = squad
-    .filter((s) => s.position < XI_SIZE)
-    .sort((a, b) => a.position - b.position)
-    .map((s) => s.player);
+  // Per-slot batting-order fit for the placed XI players, indexed by true slot.
+  const xi: (Player | undefined)[] = new Array(XI_SIZE).fill(undefined);
+  for (const s of squad) {
+    if (s.position < XI_SIZE) xi[s.position] = s.player;
+  }
   const fitByPos = new Map(analyzePositions(xi).fits.map((f) => [f.pos, f]));
 
   const renderSlot = (pos: number, bench: boolean) => {
@@ -107,6 +108,7 @@ function FilledSlot({
   const { player } = slot;
   const meta = TEAM_META[player.team];
   const trait = getTrait(player.id);
+  const rarity = player.rarity ? RARITY_META[player.rarity] : null;
   return (
     <motion.div
       layout
@@ -115,10 +117,15 @@ function FilledSlot({
       exit={{ opacity: 0, scale: 0.85 }}
       transition={{ type: 'spring', stiffness: 320, damping: 22 }}
       className={cn(
-        'flex h-[58px] w-full items-center gap-3 overflow-hidden rounded-xl border border-white/10 px-2.5',
+        'flex h-[58px] w-full items-center gap-3 overflow-hidden rounded-xl border px-2.5',
+        rarity ? 'border-transparent' : 'border-white/10',
         bench ? 'bg-pitch-800/60' : 'bg-pitch-800',
       )}
-      style={{ boxShadow: `inset 3px 0 0 ${meta.accent}` }}
+      style={
+        rarity
+          ? { boxShadow: `inset 3px 0 0 ${rarity.color}, 0 0 0 1px ${rarity.color}88` }
+          : { boxShadow: `inset 3px 0 0 ${meta.accent}` }
+      }
     >
       <span
         className="grid h-9 w-9 shrink-0 place-items-center rounded-lg font-display text-sm font-700 ring-1 ring-white/15"
@@ -127,7 +134,18 @@ function FilledSlot({
         {initials(player.name)}
       </span>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-600 leading-tight">{player.name}</div>
+        <div className="flex items-center gap-1.5">
+          <span className="truncate text-sm font-600 leading-tight">{player.name}</span>
+          {rarity && (
+            <span
+              className="shrink-0 rounded px-1 py-px text-[8px] font-700 uppercase tracking-wide"
+              style={{ background: `${rarity.color}22`, color: rarity.color }}
+              title={`${rarity.label} · ${player.editionTitle}`}
+            >
+              {player.editionTitle}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
           <TeamBadge code={player.team} size="sm" className="!h-4 !w-4 !text-[7px] !rounded" />
           <span>{player.team}</span>
@@ -149,7 +167,7 @@ function FilledSlot({
           </span>
         )}
         <div className="flex flex-col items-center">
-          <span className="font-display text-base font-700" style={{ color: meta.accent }}>
+          <span className="font-display text-base font-700" style={{ color: rarity ? rarity.color : meta.accent }}>
             {player.overallRating}
           </span>
           <span className="stat-label">OVR</span>

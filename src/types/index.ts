@@ -17,6 +17,14 @@ export type TeamCode =
 
 export type PlayerRole = 'BATTER' | 'BOWLER' | 'ALL_ROUNDER' | 'WICKET_KEEPER';
 
+/**
+ * Collectible card tier, weakest → strongest. A normal player has no rarity;
+ * marquee names can occasionally surface in the draft (and in franchise squads)
+ * as a boosted edition (e.g. a vintage-season Kohli or a 2011 Dhoni) carrying
+ * one of these tiers.
+ */
+export type Rarity = 'IN_FORM' | 'RARE' | 'EPIC' | 'LEGENDARY';
+
 export interface Player {
   id: number;
   name: string;
@@ -26,6 +34,12 @@ export interface Player {
   bowlingRating: number;
   overallRating: number;
   fantasyWeight: number;
+  /** Set only on a boosted prime edition (a special draft pull). */
+  rarity?: Rarity;
+  /** Historical/flavour title for a prime edition, e.g. "Vintage '16". */
+  editionTitle?: string;
+  /** The player's normal overall rating, before the prime boost. */
+  baseOverall?: number;
 }
 
 export interface PlayersDataset {

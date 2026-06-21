@@ -7,6 +7,7 @@ export * from './teamStrengthEngine';
 export * from './compositionEngine';
 export * from './chemistryEngine';
 export * from './positionEngine';
+export * from './matchupEngine';
 export * from './seasonEngine';
 export * from './seasonStagedEngine';
 export * from './matchEngine';
