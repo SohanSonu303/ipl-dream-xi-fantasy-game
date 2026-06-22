@@ -10,6 +10,7 @@ import {
   sellCard,
   isPeaked,
   getBenchSize,
+  MIN_BENCH,
   MAX_BENCH,
   BENCH_UPGRADE_COST,
   SELL_PRICE,
