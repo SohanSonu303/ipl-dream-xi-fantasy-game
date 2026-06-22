@@ -265,9 +265,9 @@ export function resolveShot(
     (match === 'ideal' ? 16 : match === 'danger' ? -20 : 0);
 
   // Wicket chance — danger balls and a beaten contest get you out.
-  let wP = (match === 'danger' ? 0.26 : match === 'ok' ? 0.08 : 0.03) * (1.25 - batC / 100) * (1 + edge * 0.4);
-  if (c < 28) wP += 0.12;
-  wP = clamp(wP, 0.02, 0.6);
+  let wP = (match === 'danger' ? 0.18 : match === 'ok' ? 0.055 : 0.025) * (1.25 - batC / 100) * (1 + edge * 0.35);
+  if (c < 22) wP += 0.08;
+  wP = clamp(wP, 0.01, 0.5);
 
   if (random() < wP) {
     const bowled = delivery === 'YORKER';
@@ -283,14 +283,14 @@ export function resolveShot(
   c = clamp(c, 0, 100);
   const protectedZone = !field.openZones.includes(choice);
 
-  // Boundary band.
-  if (c >= 66) {
-    const sixP = clamp((c - 70) / 22 + (batC - 80) / 200 + (match === 'ideal' ? 0.1 : 0), 0.12, 0.85);
-    const goesSix = zone.aerial && c >= 72 && random() < sixP;
+  // Boundary band — lowered threshold so good contact more often finds the rope.
+  if (c >= 58) {
+    const sixP = clamp((c - 62) / 22 + (batC - 80) / 200 + (match === 'ideal' ? 0.12 : 0), 0.14, 0.88);
+    const goesSix = zone.aerial && c >= 64 && random() < sixP;
 
     // The unseen field: a deep rider can swallow a big one or save the four.
     if (protectedZone) {
-      if (goesSix && random() < 0.22) {
+      if (goesSix && random() < 0.14) {
         const f = deepFielder(field, choice)!;
         return mk(0, true, `Launched — but holed out to the man at deep ${zone.region}!`, 'wicket', { x: f.x, y: f.y }, true, delivery, dLabel, choice);
       }
@@ -307,11 +307,11 @@ export function resolveShot(
   }
 
   // Worked into the field for ones and twos.
-  if (c >= 50) {
+  if (c >= 44) {
     const f = deepFielder(field, choice) ?? anyFielder(field, choice);
     return mk(2, false, `${zone.shot} placed toward ${zone.region} — they come back for two.`, 'run', { x: f.x * 0.85, y: f.y * 0.85 }, false, delivery, dLabel, choice);
   }
-  if (c >= 34) {
+  if (c >= 28) {
     const inf = pointAt(zone.angle, 0.38);
     return mk(1, false, `${zone.shot} into the infield at ${zone.region} — single.`, 'run', inf, false, delivery, dLabel, choice);
   }

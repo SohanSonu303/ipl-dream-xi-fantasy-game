@@ -51,12 +51,10 @@ function pickDeathBowler(team: SeasonTeam): Player {
  * finisher at slot 6 pays off here.
  */
 export function setupFinalOver(userTeam: SeasonTeam, oppTeam: SeasonTeam, targetDelta = 0): FinalOverSetup {
-  // A demanding last over: typically ~15–18 to win, more when the opponent is
-  // the stronger side. You'll need boundaries off nearly every ball — real risk.
-  // `targetDelta` folds in the pitch/toss (a flat deck eases it, a green seamer
-  // makes it harder).
+  // A challenging but achievable last over: typically ~12–16 to win, adjusted
+  // for the power gap between sides. `targetDelta` folds in pitch/toss conditions.
   const target = Math.round(
-    clamp(17 + (oppTeam.strength.teamPower - userTeam.strength.teamPower) * 0.4 + randomFloat(-3, 3) + targetDelta, 10, 22),
+    clamp(13 + (oppTeam.strength.teamPower - userTeam.strength.teamPower) * 0.3 + randomFloat(-2, 2) + targetDelta, 8, 17),
   );
   const xi = userTeam.players ?? [];
   // Death order: the finisher slot (index 5) onward, then the tail.

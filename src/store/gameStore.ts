@@ -326,6 +326,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       impactUsed: false,
       userInFinal: false,
       finalOpponentId: null,
+      rewarded: false, // reset so each new season run earns its own coins
     });
   },
 

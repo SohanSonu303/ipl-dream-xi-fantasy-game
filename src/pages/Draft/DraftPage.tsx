@@ -404,11 +404,11 @@ function SquadCompleteCard({
         </p>
       </div>
 
-      <div className="mt-6 flex flex-col items-center gap-2">
+      <div className="mt-6 flex flex-col items-center gap-4">
         <button onClick={onSimulate} className="btn-primary px-10 py-4 text-lg">
           {ctaLabel}
         </button>
-        <button onClick={onRearrange} className="text-xs font-600 uppercase tracking-wide text-sky-300 hover:text-sky-200">
+        <button onClick={onRearrange} className="btn-ghost border-sky-400/35 text-sky-200 hover:bg-sky-500/10">
           ✎ Rearrange Lineup
         </button>
       </div>
