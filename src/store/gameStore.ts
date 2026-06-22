@@ -41,6 +41,7 @@ import type { Composition } from '@/types';
 import { hashString, random, resetRng, round, seedRng } from '@/utils';
 import type { SharedTeam } from '@/utils/shareCode';
 import { dailySeed, recordDailyResult, todayKey } from '@/data/daily';
+import { getBenchSize, upgradeBench } from '@/data/profile';
 
 /** The XI in batting order (slots 0..10). */
 function xiOrdered(squad: SquadSlot[]): Player[] {
@@ -127,6 +128,9 @@ interface GameState {
   /** True once the season's coin/collection reward has been granted. */
   rewarded: boolean;
 
+  /** Current bench size (2–5, grows via purchaseBenchUpgrade). */
+  benchSize: number;
+
   // --- actions ---
   /**
    * Enter the draft. In free play you may pre-seed up to AUCTION_SIGN_LIMIT
@@ -152,6 +156,7 @@ interface GameState {
   runVersus: () => void;
   markRewarded: () => void;
   resetGame: () => void;
+  purchaseBenchUpgrade: () => boolean;
 }
 
 const DEFAULT_NAME = 'My Dream XI';
@@ -180,6 +185,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   mode: 'free',
   teamName: DEFAULT_NAME,
   opponent: null,
+  benchSize: getBenchSize(),
   ...initialDraftState,
 
   startDraft: (mode = 'free', seed = []) => {
@@ -233,9 +239,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     }),
 
   rollTeam: () => {
-    const { currentTeam, squad, isRolling } = get();
+    const { currentTeam, squad, isRolling, benchSize } = get();
+    const effectiveSquadSize = XI_SIZE + benchSize;
     // Only roll when there's no active roll waiting on a pick.
-    if (currentTeam || isRolling || squad.length >= SQUAD_SIZE) return;
+    if (currentTeam || isRolling || squad.length >= effectiveSquadSize) return;
     const drafted = new Set(squad.map((s) => s.player.id));
     const next = drawTeam(get().lastTeam, drafted);
     const mode = get().mode;
@@ -274,7 +281,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   pickPlayer: (player) => {
-    if (get().squad.length >= SQUAD_SIZE) return;
+    const { squad, benchSize } = get();
+    if (squad.length >= XI_SIZE + benchSize) return;
     set({ pendingPlayer: player });
   },
 
@@ -300,8 +308,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   // Stage 1: build the user's XI and play the fixed part of the season +
   // first half, pausing for the mid-season Impact Player decision.
   beginSeason: () => {
-    const { squad, teamName, captainId, mode } = get();
-    if (squad.length !== SQUAD_SIZE) return;
+    const { squad, teamName, captainId, mode, benchSize } = get();
+    if (squad.length !== XI_SIZE + benchSize) return;
 
     // Daily: seed from the date + initial XI so the run is reproducible and a
     // pure skill puzzle (you can't re-roll for a luckier result).
@@ -415,8 +423,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   runVersus: () => {
-    const { squad, teamName, captainId, opponent } = get();
-    if (squad.length !== SQUAD_SIZE || !opponent) return;
+    const { squad, teamName, captainId, opponent, benchSize } = get();
+    if (squad.length !== XI_SIZE + benchSize || !opponent) return;
 
     const userTeam = buildUserTeam(teamName || DEFAULT_NAME, xiOrdered(squad), captainId);
     userTeam.id = VS_USER_ID; // distinct ids so the series can tell sides apart
@@ -428,6 +436,12 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   markRewarded: () => set({ rewarded: true }),
+
+  purchaseBenchUpgrade: () => {
+    const ok = upgradeBench();
+    if (ok) set({ benchSize: getBenchSize() });
+    return ok;
+  },
 
   resetGame: () => {
     resetRng();
@@ -497,6 +511,11 @@ export function useRoleBalance(): Record<PlayerRole, number> {
     if (slot.position < XI_SIZE) base[slot.player.role]++;
   }
   return base;
+}
+
+/** Current bench capacity (reactive — updates when a bench upgrade is purchased). */
+export function useBenchSize(): number {
+  return useGameStore((s) => s.benchSize);
 }
 
 export { SQUAD_SIZE, XI_SIZE, MAX_REROLLS };

@@ -10,6 +10,7 @@ import { ResultsPage } from '@/pages/Results/ResultsPage';
 import { VersusPage } from '@/pages/Versus/VersusPage';
 import { VersusResultPage } from '@/pages/Versus/VersusResultPage';
 import { CollectionPage } from '@/pages/Collection/CollectionPage';
+import { BuildChallengePage } from '@/pages/Collection/BuildChallengePage';
 import { AuctionPage } from '@/pages/Auction/AuctionPage';
 
 const queryClient = new QueryClient({
@@ -26,6 +27,7 @@ function AnimatedRoutes() {
         <Route path="/draft" element={<DraftPage />} />
         <Route path="/auction" element={<AuctionPage />} />
         <Route path="/collection" element={<CollectionPage />} />
+        <Route path="/build-challenge" element={<BuildChallengePage />} />
         <Route path="/simulate" element={<SimulationPage />} />
         <Route path="/results" element={<ResultsPage />} />
         <Route path="/vs/:code" element={<VersusPage />} />

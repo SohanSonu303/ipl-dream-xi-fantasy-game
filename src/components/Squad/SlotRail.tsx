@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import type { Player, SquadSlot } from '@/types';
-import { SQUAD_SIZE, XI_SIZE } from '@/engine';
+import { XI_SIZE } from '@/engine';
 import { TEAM_META } from '@/data/teams';
 import { cn, initials } from '@/utils';
 
@@ -9,6 +9,7 @@ interface SlotRailProps {
   pendingPlayer: Player | null;
   onAssign: (position: number) => void;
   className?: string;
+  squadSize?: number;
 }
 
 /**
@@ -17,14 +18,14 @@ interface SlotRailProps {
  * full squad board. Filled slots show the player's monogram in team colours;
  * empty slots glow and become tappable while a pick is pending.
  */
-export function SlotRail({ squad, pendingPlayer, onAssign, className }: SlotRailProps) {
+export function SlotRail({ squad, pendingPlayer, onAssign, className, squadSize = XI_SIZE + 2 }: SlotRailProps) {
   const byPosition = new Map(squad.map((s) => [s.position, s]));
   const assigning = Boolean(pendingPlayer);
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
       <span className="stat-label text-center">XI</span>
-      {Array.from({ length: SQUAD_SIZE }, (_, pos) => {
+      {Array.from({ length: squadSize }, (_, pos) => {
         const slot = byPosition.get(pos);
 
         if (slot) {

@@ -5,10 +5,10 @@ import type { SquadSlot } from '@/types';
 import { LineupBuilder } from '@/components/Squad/LineupBuilder';
 import {
   MAX_REROLLS,
-  SQUAD_SIZE,
   XI_SIZE,
   useChemistry,
   useComposition,
+  useBenchSize,
   useGameStore,
   usePositions,
   useRoleBalance,
@@ -54,9 +54,11 @@ export function DraftPage() {
   const composition = useComposition();
   const chemistry = useChemistry();
   const positions = usePositions();
+  const benchSize = useBenchSize();
+  const effectiveSquadSize = XI_SIZE + benchSize;
 
   const isVersus = mode === 'versus';
-  const isFull = squad.length >= SQUAD_SIZE;
+  const isFull = squad.length >= effectiveSquadSize;
   const canRoll = !currentTeam && !pendingPlayer && !isRolling && !isFull;
   const canReroll = Boolean(currentTeam) && !pendingPlayer && !isRolling && rerollsUsed < MAX_REROLLS;
 
@@ -118,14 +120,14 @@ export function DraftPage() {
           <SectionLabel>Draft Squad</SectionLabel>
           <span className="font-display text-sm font-700 tabular-nums">
             {squad.length}
-            <span className="text-slate-500">/{SQUAD_SIZE}</span>
+            <span className="text-slate-500">/{effectiveSquadSize}</span>
           </span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-white/10">
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-gold-soft to-gold-deep"
             initial={false}
-            animate={{ width: `${(squad.length / SQUAD_SIZE) * 100}%` }}
+            animate={{ width: `${(squad.length / effectiveSquadSize) * 100}%` }}
             transition={{ type: 'spring', stiffness: 200, damping: 26 }}
           />
         </div>
@@ -193,6 +195,7 @@ export function DraftPage() {
                   pendingPlayer={pendingPlayer}
                   onAssign={assignToPosition}
                   className="w-11 shrink-0 lg:hidden"
+                  squadSize={effectiveSquadSize}
                 />
                 <div className="min-w-0 flex-1">
                   {currentTeam && !isRolling ? (
@@ -250,7 +253,7 @@ export function DraftPage() {
           />
           <div className="panel p-4">
             <SectionLabel className="mb-3">Your XI</SectionLabel>
-            <SquadBoard squad={squad} pendingPlayer={pendingPlayer} onAssign={assignToPosition} />
+            <SquadBoard squad={squad} pendingPlayer={pendingPlayer} onAssign={assignToPosition} squadSize={effectiveSquadSize} />
           </div>
         </section>
       </div>

@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Player, SquadSlot } from '@/types';
-import { SQUAD_SIZE, XI_SIZE, analyzePositions } from '@/engine';
+import { XI_SIZE, analyzePositions } from '@/engine';
 import { TEAM_META, ROLE_SHORT } from '@/data/teams';
 import { RARITY_META } from '@/data/primeEditions';
 import { getTrait } from '@/data/playerMeta';
@@ -26,9 +26,10 @@ interface SquadBoardProps {
   squad: SquadSlot[];
   pendingPlayer: Player | null;
   onAssign: (position: number) => void;
+  squadSize?: number;
 }
 
-export function SquadBoard({ squad, pendingPlayer, onAssign }: SquadBoardProps) {
+export function SquadBoard({ squad, pendingPlayer, onAssign, squadSize = XI_SIZE + 2 }: SquadBoardProps) {
   const byPosition = new Map(squad.map((s) => [s.position, s]));
   const assigning = Boolean(pendingPlayer);
 
@@ -89,7 +90,7 @@ export function SquadBoard({ squad, pendingPlayer, onAssign }: SquadBoardProps) 
           <span className="text-slate-600">· impact subs</span>
         </div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {Array.from({ length: SQUAD_SIZE - XI_SIZE }, (_, i) => renderSlot(XI_SIZE + i, true))}
+          {Array.from({ length: squadSize - XI_SIZE }, (_, i) => renderSlot(XI_SIZE + i, true))}
         </div>
       </div>
     </div>

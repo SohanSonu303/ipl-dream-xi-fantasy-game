@@ -113,6 +113,8 @@ export function HomePage() {
   const startDraft = useGameStore((s) => s.startDraft);
   const resetGame = useGameStore((s) => s.resetGame);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showChallenge, setShowChallenge] = useState(false);
+  const [challengeCode, setChallengeCode] = useState('');
   const { data } = usePlayers();
 
   useEffect(() => {
@@ -136,6 +138,16 @@ export function HomePage() {
     if (mode === 'free') { navigate('/pre-draft'); return; }
     startDraft(mode);
     navigate('/draft');
+  };
+
+  const acceptChallenge = () => {
+    if (!challengeCode.trim()) return;
+    // Extract bare code from a full URL like "https://…#/vs/CODE extra text"
+    const match = challengeCode.match(/[#/]vs\/([A-Za-z0-9_-]+)/);
+    const code = match ? match[1] : challengeCode.trim().split(/\s/)[0];
+    setShowChallenge(false);
+    setChallengeCode('');
+    navigate(`/vs/${code}`);
   };
 
   return (
@@ -204,6 +216,9 @@ export function HomePage() {
             </button>
             <button onClick={() => navigate('/collection')} className="btn-ghost border-purple-400/40 text-purple-200">
               🃏 Collection
+            </button>
+            <button onClick={() => setShowChallenge(true)} className="btn-ghost border-red-400/40 text-red-200">
+              ⚔️ Challenge
             </button>
           </div>
 
@@ -303,6 +318,70 @@ export function HomePage() {
           </button>
         </div>
       </motion.section>
+
+      {/* ── Challenge a Friend Modal ── */}
+      {showChallenge && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 grid place-items-center bg-pitch-950/90 p-4 backdrop-blur-sm"
+          onClick={() => setShowChallenge(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+            className="panel w-full max-w-sm p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="heading-display text-center text-xl font-700 uppercase">⚔️ Challenge a Friend</h2>
+            <p className="mt-2 text-center text-sm text-slate-400">
+              Paste a friend's challenge link or code, or build your own XI to share.
+            </p>
+
+            <div className="mt-5 space-y-3">
+              <div>
+                <label className="stat-label mb-1 block">Friend's Challenge Code or Link</label>
+                <input
+                  value={challengeCode}
+                  onChange={(e) => setChallengeCode(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && acceptChallenge()}
+                  placeholder="Paste code or URL here…"
+                  className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 outline-none focus:border-red-400/50"
+                  autoFocus
+                />
+              </div>
+              <button
+                onClick={acceptChallenge}
+                disabled={!challengeCode.trim()}
+                className="btn-primary w-full justify-center disabled:opacity-40"
+              >
+                Accept Challenge →
+              </button>
+
+              <div className="relative flex items-center gap-3">
+                <div className="h-px flex-1 bg-white/10" />
+                <span className="text-xs text-slate-600">or</span>
+                <div className="h-px flex-1 bg-white/10" />
+              </div>
+
+              <button
+                onClick={() => { setShowChallenge(false); navigate('/build-challenge'); }}
+                className="btn-ghost w-full justify-center border-red-400/30 text-red-200"
+              >
+                Build My Challenge XI →
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowChallenge(false)}
+              className="mt-4 w-full text-center text-xs text-slate-500 hover:text-slate-300"
+            >
+              Cancel
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
 
       {/* ── Reset Confirmation Modal ── */}
       {showResetConfirm && (

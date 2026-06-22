@@ -42,7 +42,13 @@ export interface Profile {
   /** Career growth points banked per prospect (playerId → points). */
   development: Record<number, number>;
   stats: ProfileStats;
+  /** Number of bench slots (default 2, purchasable up to 5). */
+  benchSize?: number;
 }
+
+const MIN_BENCH = 2;
+const MAX_BENCH = 5;
+const BENCH_UPGRADE_COST = 3000;
 
 function emptyProfile(): Profile {
   return {
@@ -50,6 +56,7 @@ function emptyProfile(): Profile {
     collection: {},
     development: {},
     stats: { gamesPlayed: 0, seasonsWon: 0, packsOpened: 0, coinsEarned: 0 },
+    benchSize: MIN_BENCH,
   };
 }
 
@@ -64,6 +71,7 @@ export function loadProfile(): Profile {
       collection: parsed.collection ?? {},
       development: parsed.development ?? {},
       stats: { ...emptyProfile().stats, ...(parsed.stats ?? {}) },
+      benchSize: parsed.benchSize ?? MIN_BENCH,
     };
   } catch {
     return emptyProfile();
@@ -162,6 +170,62 @@ export function collectionSummary(): CollectionSummary {
   }
   return { total, unique: cards.length, byRarity, legendary: byRarity.LEGENDARY };
 }
+
+export const SELL_PRICE: Record<string, number> = {
+  LEGENDARY: 900,
+  EPIC: 450,
+  RARE: 200,
+  IN_FORM: 75,
+  BASE: 30,
+};
+
+export const PEAKED_SELL_BONUS = 600;
+
+/**
+ * Sell one copy of a card for coins. Returns the coins earned, or null if the
+ * card is not owned.
+ */
+export function sellCard(key: string): number | null {
+  const p = loadProfile();
+  const card = p.collection[key];
+  if (!card) return null;
+  const price = isPeaked(card.playerId)
+    ? PEAKED_SELL_BONUS
+    : (SELL_PRICE[card.rarity ?? 'BASE'] ?? 30);
+  if (card.count > 1) {
+    card.count -= 1;
+  } else {
+    delete p.collection[key];
+  }
+  p.coins += price;
+  p.stats.coinsEarned += price;
+  save(p);
+  return price;
+}
+
+/** True when a prospect has hit their development ceiling. */
+export function isPeaked(playerId: number): boolean {
+  return isProspect(playerId) && getDev(playerId) >= getPotential(playerId) && getDev(playerId) > 0;
+}
+
+/** Current bench size (default 2, up to 5 via upgrades). */
+export function getBenchSize(): number {
+  return loadProfile().benchSize ?? MIN_BENCH;
+}
+
+/** Purchase a bench slot expansion; returns true on success. */
+export function upgradeBench(): boolean {
+  const p = loadProfile();
+  const current = p.benchSize ?? MIN_BENCH;
+  if (current >= MAX_BENCH) return false;
+  if (p.coins < BENCH_UPGRADE_COST) return false;
+  p.coins -= BENCH_UPGRADE_COST;
+  p.benchSize = current + 1;
+  save(p);
+  return true;
+}
+
+export { MIN_BENCH, MAX_BENCH, BENCH_UPGRADE_COST };
 
 export interface RewardBreakdown {
   outcome: number;
