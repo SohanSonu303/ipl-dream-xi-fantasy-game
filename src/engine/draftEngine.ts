@@ -82,6 +82,6 @@ export const XI_SIZE = 11;
 export const BENCH_SIZE = 2;
 /** Total players drafted: the XI plus the bench. */
 export const SQUAD_SIZE = XI_SIZE + BENCH_SIZE;
-export const MAX_REROLLS = 1;
+export const MAX_REROLLS = 2;
 /** How many players are revealed per roll (the draft pack size). */
 export const OFFER_SIZE = 3;

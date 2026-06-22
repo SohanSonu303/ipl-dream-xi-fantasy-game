@@ -12,7 +12,7 @@ import {
   buildLots,
   finalPrice,
 } from '@/engine';
-import { getCoins } from '@/data/profile';
+import { collectCards, getCoins } from '@/data/profile';
 import { PlayerCard } from '@/components/Shared/PlayerCard';
 import { PageTransition, Brand, SectionLabel } from '@/components/Shared/ui';
 import { ROLE_SHORT } from '@/data/teams';
@@ -66,6 +66,7 @@ export function AuctionPage() {
     const next = [...signings, { player: l.player, paid }];
     setBudget((b) => b - paid);
     setSignings(next);
+    collectCards([l.player]);
     setSold({ lot: l, paid, by: 'YOU' });
     window.setTimeout(() => advance(next), 1100);
   };

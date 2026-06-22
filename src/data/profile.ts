@@ -210,6 +210,13 @@ export function recordPackOpened(): void {
   save(p);
 }
 
+/** Permanently erase all persisted app data (profile + daily history). */
+export function clearAllData(): void {
+  if (typeof localStorage === 'undefined') return;
+  localStorage.removeItem('dreamxi:profile:v1');
+  localStorage.removeItem('dreamxi:daily:v1');
+}
+
 // --- Career growth ----------------------------------------------------------
 
 /** Overall-rating points a prospect gains per season you field them. */

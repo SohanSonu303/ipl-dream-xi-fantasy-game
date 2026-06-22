@@ -1,7 +1,7 @@
 import type { Player, PlayerRole, Rarity, SquadSlot } from '@/types';
 import { ALL_PLAYERS, BENCH_SIZE } from './draftEngine';
 import { rollPrimeEdition } from '@/data/primeEditions';
-import { applyDevelopment, ownsAnyOf } from '@/data/profile';
+import { applyDevelopment, ownsAnyOf, ownsCard } from '@/data/profile';
 import { clamp, shuffle } from '@/utils';
 
 // ---------------------------------------------------------------------------
@@ -67,14 +67,20 @@ export function finalPrice(lot: AuctionLot, winningBid: number): number {
 
 /** Build the stream of lots for one auction. */
 export function buildLots(count = 40): AuctionLot[] {
-  return shuffle(ALL_PLAYERS)
-    .slice(0, count)
-    .map((p) => rollPrimeEdition(applyDevelopment(p)))
-    .map((player) => {
-      const basePrice = priceOf(player);
-      const aiMax = Math.round(basePrice * (1 + Math.random() * 0.7));
-      return { player, basePrice, aiMax, owned: ownsAnyOf(player.id) };
-    });
+  // Draw a larger pool so filtering exact duplicates still yields `count` lots.
+  const rolled = shuffle(ALL_PLAYERS)
+    .slice(0, count * 2)
+    .map((p) => rollPrimeEdition(applyDevelopment(p)));
+
+  // Skip cards the user already owns at this exact rarity — upgrades are fine.
+  // Own BASE Kohli → LEGENDARY Kohli can still appear. Own LEGENDARY → skip.
+  const filtered = rolled.filter((player) => !ownsCard(player.id, player.rarity));
+
+  return filtered.slice(0, count).map((player) => {
+    const basePrice = priceOf(player);
+    const aiMax = Math.round(basePrice * (1 + Math.random() * 0.7));
+    return { player, basePrice, aiMax, owned: ownsAnyOf(player.id) };
+  });
 }
 
 // --- Auto-arrange the bought squad into a sensible XI -----------------------

@@ -2,14 +2,19 @@ import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { SeasonTeam } from '@/types';
 import {
+  type DeliveryType,
   type Field,
   type ShotChoice,
   type ShotResult,
+  type ShotZoneKey,
   buildField,
   finalOverEffect,
+  getDeliveryWeights,
+  getShotMatch,
   PITCH_META,
   resolveShot,
   rollConditions,
+  rollDelivery,
   setupFinalOver,
   SHOT_ZONES,
 } from '@/engine';
@@ -31,9 +36,16 @@ interface PlayedBall {
   wicket: boolean;
 }
 
+// Colour per delivery type for the tendency bars.
+const DELIVERY_COLOR: Record<DeliveryType, string> = {
+  YORKER: '#f87171',  // red   — dangerous
+  LENGTH: '#94a3b8',  // slate — standard
+  FULL:   '#94a3b8',  // slate — standard
+  SHORT:  '#fbbf24',  // amber — bouncer
+  LOOSE:  '#34d399',  // green — opportunity
+};
+
 export function PlayableFinalOver({ userTeam, oppTeam, onComplete }: PlayableFinalOverProps) {
-  // Toss + pitch for the over: a flat deck eases the chase, a seamer/turner
-  // makes it brutal, and winning the toss is a small edge.
   const conditions = useMemo(() => rollConditions(), []);
   const effect = useMemo(() => finalOverEffect(conditions), [conditions]);
   const pitch = PITCH_META[conditions.pitch];
@@ -51,6 +63,10 @@ export function PlayableFinalOver({ userTeam, oppTeam, onComplete }: PlayableFin
   const [locked, setLocked] = useState(false);
   const [done, setDone] = useState(false);
 
+  // ── Cricket Brain state ──────────────────────────────────────────────────
+  const [brainUsed, setBrainUsed] = useState(false);
+  const [revealedDelivery, setRevealedDelivery] = useState<DeliveryType | null>(null);
+
   const need = Math.max(0, target - runs);
   const ballsLeft = 6 - ball;
   const allOut = batterIndex >= batters.length;
@@ -58,14 +74,29 @@ export function PlayableFinalOver({ userTeam, oppTeam, onComplete }: PlayableFin
   const hand = striker ? getBatsHand(striker.id) : 'R';
   const userWon = runs >= target;
 
+  // Bowler tendency weights — fixed for the over (bowler doesn't change).
+  const tendencies = useMemo(() => getDeliveryWeights(bowler), [bowler]);
+
+  // ── Cricket Brain: reveal the exact next delivery once per over ──────────
+  const useBrain = () => {
+    if (brainUsed || locked || done || allOut) return;
+    setRevealedDelivery(rollDelivery(bowler));
+    setBrainUsed(true);
+  };
+
+  // ── Play a ball ──────────────────────────────────────────────────────────
   const play = (choice: ShotChoice) => {
     if (done || allOut || locked || !striker) return;
-    const result = resolveShot(bowler, striker, choice, field, effect.contestDelta);
+
+    // Consume the revealed delivery (if brain was used) before resolving.
+    const forced = revealedDelivery;
+    setRevealedDelivery(null);
+
+    const result = resolveShot(bowler, striker, choice, field, effect.contestDelta, forced ?? undefined);
 
     setLocked(true);
     setFlight({ to: result.landing, kind: result.kind, aerial: result.aerial, deliveryLabel: result.deliveryLabel, key: ball + 1 });
 
-    // Delivery leg (~420ms) + shot leg (~500–800ms) + a small buffer.
     const aerial = result.aerial || result.kind === 'six';
     const settle = aerial ? 1500 : 1250;
 
@@ -82,7 +113,7 @@ export function PlayableFinalOver({ userTeam, oppTeam, onComplete }: PlayableFin
       setDeliveries((d) => [...d, { label: result.label, runs: result.runs, wicket: result.wicket }]);
       setLast(result);
       setFlight(null);
-      setField(buildField()); // fresh field + gaps for the next ball
+      setField(buildField());
       setLocked(false);
 
       const won = newRuns >= target;
@@ -94,7 +125,9 @@ export function PlayableFinalOver({ userTeam, oppTeam, onComplete }: PlayableFin
     <div className="panel relative mx-auto max-w-md overflow-hidden p-4 text-center sm:p-5">
       {done && userWon && <Confetti count={80} />}
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_0%,rgba(245,197,66,0.16),transparent_65%)]" />
-      <span className="pill mx-auto border border-gold/30 bg-gold/10 text-gold-soft">The Final · You’re Batting</span>
+
+      {/* Header */}
+      <span className="pill mx-auto border border-gold/30 bg-gold/10 text-gold-soft">The Final · You're Batting</span>
 
       {/* Toss + pitch */}
       <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5 text-[11px]">
@@ -144,9 +177,81 @@ export function PlayableFinalOver({ userTeam, oppTeam, onComplete }: PlayableFin
         <PlayerTag name={striker?.name ?? '—'} rating={striker?.battingRating ?? 0} rl={hand === 'L' ? 'LHB' : 'RHB'} rarity={striker?.rarity} tone="#f5c542" />
       </div>
 
-      {/* The field */}
+      {/* ── LAYER 2: Bowler Tendency Bars + Cricket Brain button ── */}
+      {!done && (
+        <div className="mt-3 rounded-xl border border-white/8 bg-white/[0.03] p-2.5">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[10px] font-700 uppercase tracking-wider text-slate-500">Bowler Tendencies</span>
+            {/* ── LAYER 3: Cricket Brain ── */}
+            <button
+              onClick={useBrain}
+              disabled={brainUsed || locked || done || allOut}
+              className={cn(
+                'flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-700 uppercase tracking-wide transition-all',
+                !brainUsed
+                  ? 'border border-purple-400/40 bg-purple-500/20 text-purple-200 shadow-[0_0_8px_rgba(168,85,247,0.25)] hover:bg-purple-500/30 active:scale-95'
+                  : 'cursor-default text-slate-600',
+              )}
+              title={brainUsed ? 'Already used this over' : 'Reveal the exact next delivery — use it wisely!'}
+            >
+              🧠 {brainUsed ? 'Brain Used' : 'Read Delivery'}
+            </button>
+          </div>
+
+          <div className="space-y-1">
+            {tendencies.map(({ type, label, pct }) => (
+              <div key={type} className="flex items-center gap-2">
+                <span className="w-12 shrink-0 text-right text-[10px] font-600" style={{ color: DELIVERY_COLOR[type] }}>
+                  {label}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <motion.div
+                      className="h-1.5 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.6, ease: 'easeOut' }}
+                      style={{ backgroundColor: DELIVERY_COLOR[type], opacity: 0.7 }}
+                    />
+                  </div>
+                </div>
+                <span className="w-7 shrink-0 text-right text-[10px] tabular-nums text-slate-500">{pct}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Delivery reveal banner (Cricket Brain active) ── */}
+      <AnimatePresence>
+        {revealedDelivery && !done && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -6, height: 0 }}
+            className="mt-2 overflow-hidden"
+          >
+            <div className="flex items-center justify-center gap-2 rounded-xl border border-purple-400/40 bg-purple-500/10 px-3 py-2">
+              <span className="text-sm">⚡</span>
+              <span className="font-display text-sm font-700 uppercase tracking-wide text-purple-200">
+                {revealedDelivery} incoming!
+              </span>
+              <span className="text-[10px] text-purple-400">— pick your best shot</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── LAYER 1: The field with gap arcs ── */}
       <div className="mt-3">
-        <CricketField field={field} flight={flight} bowlerName={bowler.name} strikerName={striker?.name ?? 'Batter'} hand={hand} />
+        <CricketField
+          field={field}
+          flight={flight}
+          bowlerName={bowler.name}
+          strikerName={striker?.name ?? 'Batter'}
+          hand={hand}
+          openZones={field.openZones}
+        />
       </div>
 
       {/* Commentary */}
@@ -206,24 +311,58 @@ export function PlayableFinalOver({ userTeam, oppTeam, onComplete }: PlayableFin
         </button>
       ) : (
         <div className="mt-3">
-          <div className="mb-1.5 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-            <span>🏏</span>
-            <span>Read the bowler and pick your shot — you commit before the ball</span>
+          <div className="mb-1.5 text-[11px] text-slate-400">
+            {revealedDelivery
+              ? 'Shot quality shown — green = ideal, red = danger'
+              : 'Read the field gaps · pick your shot'}
           </div>
-          <div className="grid grid-cols-5 gap-1.5">
-            {SHOT_ZONES.map((z) => (
-              <button
-                key={z.key}
-                onClick={() => play(z.key)}
-                disabled={locked}
-                className="relative flex flex-col items-center rounded-lg border border-white/12 bg-white/5 px-1 py-2 transition-colors hover:bg-white/10 disabled:opacity-40"
-              >
-                <span className="font-display text-[12px] font-700 uppercase leading-none">{z.shot}</span>
-                <span className="mt-0.5 text-[8px] uppercase tracking-wide text-slate-500">{z.region.replace('the ', '')}</span>
-                <RiskPips risk={z.risk} />
-              </button>
-            ))}
+
+          {/* ── Shot buttons: open zone + delivery match badges ── */}
+          <div className="grid grid-cols-5 gap-1">
+            {SHOT_ZONES.map((z) => {
+              const isOpen = field.openZones.includes(z.key as ShotZoneKey);
+              const matchQuality = revealedDelivery ? getShotMatch(z.key as ShotZoneKey, revealedDelivery) : null;
+              return (
+                <button
+                  key={z.key}
+                  onClick={() => play(z.key)}
+                  disabled={locked}
+                  className={cn(
+                    'relative flex flex-col items-center rounded-lg border px-0.5 py-2 transition-colors disabled:opacity-40',
+                    matchQuality === 'ideal' && 'border-emerald-400/60 bg-emerald-500/10 shadow-[0_0_8px_rgba(52,211,153,0.15)]',
+                    matchQuality === 'danger' && 'border-red-400/60 bg-red-500/10',
+                    matchQuality === 'ok' && 'border-white/12 bg-white/5 hover:bg-white/10',
+                    !matchQuality && 'border-white/12 bg-white/5 hover:bg-white/10',
+                  )}
+                >
+                  <span className="font-display text-[11px] font-700 uppercase leading-none">{z.shot}</span>
+                  <span className="mt-0.5 text-[8px] uppercase tracking-wide text-slate-500 leading-none">
+                    {z.region.replace('the ', '')}
+                  </span>
+                  <RiskPips risk={z.risk} />
+                  {/* Badges row */}
+                  <div className="mt-1 flex flex-wrap justify-center gap-0.5">
+                    {isOpen && (
+                      <span className="rounded px-1 py-px text-[7px] font-700 uppercase bg-emerald-500/25 text-emerald-300 leading-tight">
+                        GAP
+                      </span>
+                    )}
+                    {matchQuality === 'ideal' && (
+                      <span className="rounded px-1 py-px text-[7px] font-700 bg-emerald-500/25 text-emerald-300 leading-tight">
+                        ✓
+                      </span>
+                    )}
+                    {matchQuality === 'danger' && (
+                      <span className="rounded px-1 py-px text-[7px] font-700 bg-red-500/25 text-red-300 leading-tight">
+                        ✗
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
+
           <button
             onClick={() => play('BLOCK')}
             disabled={locked}
@@ -237,7 +376,6 @@ export function PlayableFinalOver({ userTeam, oppTeam, onComplete }: PlayableFin
   );
 }
 
-/** Inherent risk of the shot (not a hint about this ball): 1 safe → 3 risky. */
 function RiskPips({ risk }: { risk: 1 | 2 | 3 }) {
   return (
     <span className="mt-1 flex gap-0.5" title={risk === 1 ? 'Low risk' : risk === 2 ? 'Medium risk' : 'High risk / high reward'}>

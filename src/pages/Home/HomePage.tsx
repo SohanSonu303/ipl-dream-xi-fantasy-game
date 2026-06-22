@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { GameMode } from '@/types';
@@ -15,29 +15,110 @@ import {
 import { TeamBadge } from '@/components/Shared/TeamBadge';
 import { PageTransition, Brand } from '@/components/Shared/ui';
 import { CoinPill } from '@/pages/Collection/CollectionPage';
-import { getCoins } from '@/data/profile';
+import { clearAllData, getCoins } from '@/data/profile';
 import { MAX_REROLLS, SEASON_LABEL } from '@/engine';
 import { ordinal } from '@/utils';
 
-const FEATURES = [
-  { title: 'Roll & Draft', desc: 'Spin a random franchise, pick a star, fill your XI.' },
-  { title: 'Build Strength', desc: 'Balance batting, bowling and fantasy power.' },
-  { title: 'Simulate', desc: 'Play a full league, fight through the playoffs.' },
-  { title: 'Lift the Trophy', desc: 'Chase the title and share your run.' },
-];
+// ── Guide section data ───────────────────────────────────────────────────────
+
+const GUIDE_SECTIONS = [
+  {
+    icon: '🎲',
+    title: 'How to Draft',
+    color: '#38bdf8',
+    borderColor: 'border-sky-400/25',
+    bgColor: 'bg-sky-500/[0.07]',
+    bullets: [
+      'Roll a random IPL franchise to reveal 3 players from that squad.',
+      `You get ${MAX_REROLLS} rerolls per draft to swap to a different franchise if you don't like the options.`,
+      'Pick 1 player per roll and assign them to a batting-order slot (XI) or bench.',
+      'Fill all 13 slots — 11 starters + 2 bench — to complete your squad.',
+      'Already own cards? Bring up to 3 as Headliners — they land directly in your XI before rolling starts.',
+    ],
+  },
+  {
+    icon: '💰',
+    title: 'Coins',
+    color: '#f5c542',
+    borderColor: 'border-gold/25',
+    bgColor: 'bg-gold/[0.06]',
+    bullets: [
+      'You earn coins after every finished season — more for better results.',
+      'Champion: 250 · Runner-up: 140 · Eliminated in Q2: 100 · Eliminator exit: 70 · Group stage: 40.',
+      '+8 coins per league win · +75 if you finish Top 4 · +40 bonus for the Daily Challenge.',
+      'Spend coins on packs in the Collection: Bronze 250 · Silver 600 · Gold 1,300.',
+      'Your coin bank slowly grows your auction budget — every 160 coins above 600 adds 1 cr of purse (up to +50 cr).',
+    ],
+  },
+  {
+    icon: '🃏',
+    title: 'Collection & Cards',
+    color: '#c084fc',
+    borderColor: 'border-purple-400/25',
+    bgColor: 'bg-purple-500/[0.07]',
+    bullets: [
+      'Cards land in your Collection when you open packs or win at auction.',
+      'Five rarities: Base (no boost) → In-Form → Rare → Epic → Legendary — each tier boosts batting, bowling and overall rating.',
+      'Bring any owned card into the draft as a Headliner — the rarity bonus carries into the simulation.',
+      'Prospects (young talents) grow their base rating by 2 per season you field them, up to their potential cap.',
+      'Duplicate cards of the same rarity don\'t stack — only an upgrade rarity is worth buying again.',
+    ],
+  },
+  {
+    icon: '⚖️',
+    title: 'Auction Draft',
+    color: '#34d399',
+    borderColor: 'border-emerald-400/25',
+    bgColor: 'bg-emerald-500/[0.07]',
+    bullets: [
+      'Bid against an AI rival in a live IPL-style player auction before your draft starts.',
+      'Sign up to 3 marquee players — they go straight into your XI as pre-placed headliners.',
+      'If you own a card of that player in any rarity, you get a 25% discount on the winning bid.',
+      'Already own the same rarity? That card won\'t appear — only upgrade versions show as lots.',
+      'Auction budget starts at 18 cr. Your coin bank grows it slowly over time. Spend wisely — you only have 6 balls.',
+    ],
+  },
+  {
+    icon: '🏆',
+    title: 'Seasons & Modes',
+    color: '#fb923c',
+    borderColor: 'border-orange-400/25',
+    bgColor: 'bg-orange-500/[0.07]',
+    bullets: [
+      'Free Play: unlimited, fully random drafts with fresh results every time.',
+      'Auction Draft: sign 3 stars at auction first, then draft the remaining 10 through rolls.',
+      'Daily Challenge: every player gets the exact same rolls today — your decisions alone decide the result. One attempt per day.',
+      'Versus Mode: draft your XI, share a code with a friend, and battle head-to-head in a best-of-3 series.',
+      'Season: 10-team IPL-style league (14 matches) → qualifying playoffs → knockout final.',
+    ],
+  },
+  {
+    icon: '⚡',
+    title: 'The Final Over',
+    color: '#fbbf24',
+    borderColor: 'border-yellow-400/25',
+    bgColor: 'bg-yellow-500/[0.07]',
+    bullets: [
+      'Reach the IPL final and you bat the last 6 balls live — your runs decide the title.',
+      'The field shows open zones as glowing green arcs (no deep rider = boundary available) and blue dots for covered zones.',
+      'Bowler tendency bars show how likely each delivery type is — plan around the bowler\'s strengths.',
+      'Cricket Brain (🧠) is available once per over — tap it to reveal the exact delivery before you commit to a shot.',
+      'Match your shot zone to an open field gap AND the likely delivery for maximum runs and minimum wicket risk.',
+    ],
+  },
+] as const;
 
 export function HomePage() {
   const navigate = useNavigate();
   const startDraft = useGameStore((s) => s.startDraft);
   const resetGame = useGameStore((s) => s.resetGame);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const { data } = usePlayers();
 
-  // Returning to the home screen always restores the original, empty state.
   useEffect(() => {
     resetGame();
   }, [resetGame]);
 
-  // Daily Challenge status (recomputed after resetGame so it reflects storage).
   const daily = useMemo(
     () => ({
       number: dailyNumber(),
@@ -50,23 +131,16 @@ export function HomePage() {
   const coins = useMemo(() => getCoins(), []);
 
   const begin = (mode: GameMode = 'free') => {
-    if (mode === 'daily' && daily.record) return; // one play per day
-    if (mode === 'auction') {
-      navigate('/auction');
-      return;
-    }
-    // Free play stops off at the headliner picker first (bring owned cards into
-    // the XI); the Daily Challenge goes straight to its fixed, seeded draft.
-    if (mode === 'free') {
-      navigate('/pre-draft');
-      return;
-    }
+    if (mode === 'daily' && daily.record) return;
+    if (mode === 'auction') { navigate('/auction'); return; }
+    if (mode === 'free') { navigate('/pre-draft'); return; }
     startDraft(mode);
     navigate('/draft');
   };
 
   return (
     <PageTransition className="flex min-h-dvh flex-col">
+      {/* Header */}
       <header className="flex items-center justify-between py-5">
         <Brand />
         <div className="flex items-center gap-2">
@@ -75,6 +149,7 @@ export function HomePage() {
         </div>
       </header>
 
+      {/* Hero */}
       <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
         <motion.span
           initial={{ opacity: 0, y: 10 }}
@@ -120,11 +195,9 @@ export function HomePage() {
             </svg>
           </button>
           <span className="text-xs text-slate-500">
-            {data?.players.length ?? 100} players · {TEAM_CODES.length} franchises ·{' '}
-            {MAX_REROLLS} reroll{MAX_REROLLS === 1 ? '' : 's'}
+            {data?.players.length ?? 100} players · {TEAM_CODES.length} franchises · {MAX_REROLLS} rerolls
           </span>
 
-          {/* Secondary modes */}
           <div className="mt-1 flex flex-wrap items-center justify-center gap-2.5">
             <button onClick={() => begin('auction')} className="btn-ghost border-sky-400/40 text-sky-200">
               ⚖️ Auction Draft
@@ -162,22 +235,117 @@ export function HomePage() {
         </motion.div>
       </div>
 
-      {/* Feature strip */}
-      <div className="grid grid-cols-2 gap-3 py-8 md:grid-cols-4">
-        {FEATURES.map((f, i) => (
-          <motion.div
-            key={f.title}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 + i * 0.08 }}
-            className="panel p-4"
+      {/* ── How to Play ── */}
+      <section className="py-10">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="mb-6 text-center"
+        >
+          <span className="pill border border-white/10 bg-white/5 text-slate-300">How to Play</span>
+          <h2 className="heading-display mt-3 text-2xl font-700 uppercase sm:text-3xl">Game Guide</h2>
+          <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
+            Everything you need to know — draft mechanics, coins, collection and the live final over.
+          </p>
+        </motion.div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {GUIDE_SECTIONS.map((s, i) => (
+            <motion.div
+              key={s.title}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 + i * 0.07 }}
+              className={`rounded-2xl border p-4 sm:p-5 ${s.borderColor} ${s.bgColor}`}
+            >
+              {/* Icon + title */}
+              <div className="mb-3 flex items-center gap-2.5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-lg">
+                  {s.icon}
+                </span>
+                <h3
+                  className="font-display text-base font-700 uppercase tracking-wide"
+                  style={{ color: s.color }}
+                >
+                  {s.title}
+                </h3>
+              </div>
+
+              {/* Bullets */}
+              <ul className="space-y-2">
+                {s.bullets.map((b, j) => (
+                  <li key={j} className="flex items-start gap-2 text-xs leading-relaxed text-slate-300">
+                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: s.color, opacity: 0.7 }} />
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Reset Data ── */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.9 }}
+        className="border-t border-white/8 py-8"
+      >
+        <div className="flex flex-col items-center gap-3 text-center">
+          <p className="text-xs text-slate-500">Want a clean slate? This will erase all your progress.</p>
+          <button
+            onClick={() => setShowResetConfirm(true)}
+            className="btn-ghost border-red-400/40 text-red-300 hover:bg-red-500/10 active:scale-95"
           >
-            <div className="heading-display text-2xl font-700 text-gold/80">{String(i + 1).padStart(2, '0')}</div>
-            <div className="mt-1 font-display text-sm font-600 uppercase tracking-wide">{f.title}</div>
-            <p className="mt-1 text-xs leading-relaxed text-slate-400">{f.desc}</p>
+            🗑️ Erase All Data
+          </button>
+        </div>
+      </motion.section>
+
+      {/* ── Reset Confirmation Modal ── */}
+      {showResetConfirm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 grid place-items-center bg-pitch-950/90 p-4 backdrop-blur-sm"
+          onClick={() => setShowResetConfirm(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+            className="panel w-full max-w-sm p-6 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-4xl">⚠️</div>
+            <h2 className="heading-display mt-3 text-xl font-700 uppercase">Erase Everything?</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">
+              This permanently deletes your coins, card collection, daily history and win streaks.
+              There is no undo.
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="btn-ghost flex-1 justify-center"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  clearAllData();
+                  setShowResetConfirm(false);
+                  window.location.reload();
+                }}
+                className="flex-1 rounded-xl border border-red-400/40 bg-red-500/20 py-2.5 font-display text-sm font-700 uppercase tracking-wide text-red-300 transition-colors hover:bg-red-500/30"
+              >
+                Erase All
+              </button>
+            </div>
           </motion.div>
-        ))}
-      </div>
+        </motion.div>
+      )}
     </PageTransition>
   );
 }
@@ -236,7 +404,7 @@ function DailyCard({
         </div>
       ) : (
         <button onClick={onPlay} className="btn-ghost mt-3 w-full justify-center border-gold/40 text-gold-soft">
-          Play Today’s Challenge
+          Play Today's Challenge
         </button>
       )}
 

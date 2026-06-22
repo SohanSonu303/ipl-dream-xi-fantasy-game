@@ -108,6 +108,34 @@ function shotMatch(key: ShotZoneKey, delivery: DeliveryType): ShotMatch {
   return 'ok';
 }
 
+/**
+ * Delivery probability weights for this bowler — same values used internally
+ * by rollDelivery, exposed so the UI can show tendency bars before each ball.
+ */
+export function getDeliveryWeights(
+  bowler: Player,
+): Array<{ type: DeliveryType; label: string; pct: number }> {
+  const br = bowler.bowlingRating;
+  const raw: Array<[DeliveryType, number]> = [
+    ['YORKER', clamp(0.08 + (br - 70) / 120, 0.05, 0.34)],
+    ['LENGTH', 0.28],
+    ['FULL', 0.2],
+    ['SHORT', 0.16],
+    ['LOOSE', clamp(0.34 - (br - 70) / 120, 0.08, 0.4)],
+  ];
+  const total = raw.reduce((s, [, w]) => s + w, 0);
+  return raw.map(([type, w]) => ({
+    type,
+    label: DELIVERY_LABEL[type],
+    pct: Math.round((w / total) * 100),
+  }));
+}
+
+/** How a shot reads against a known delivery — for UI coaching when Cricket Brain is active. */
+export function getShotMatch(choice: ShotZoneKey, delivery: DeliveryType): ShotMatch {
+  return shotMatch(choice, delivery);
+}
+
 // --- Field ------------------------------------------------------------------
 
 export interface Fielder {
@@ -204,8 +232,10 @@ export function resolveShot(
   field: Field,
   /** Pitch/conditions tilt on the contest (+ helps the batter). */
   contestDelta = 0,
+  /** Pre-revealed delivery (from Cricket Brain). Skips the random roll when set. */
+  forcedDelivery?: DeliveryType,
 ): ShotResult {
-  const delivery = rollDelivery(bowler);
+  const delivery = forcedDelivery ?? rollDelivery(bowler);
   const dLabel = DELIVERY_LABEL[delivery];
   const edge = getMatchup(bowler, batter).edge; // + = bowler has the wood
 
